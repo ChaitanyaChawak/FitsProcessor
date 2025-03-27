@@ -4,7 +4,7 @@
 Has the ability to create three different catalogs (position, shear, proxyshear) from a given huge catalog.
 - Adds missing columns (values initialised with `np.zeroes()` for now) and deletes columns not required.
 - Retains the unit and format from the original catalog, adds if missing.
-- Added column reordering function (but it strips column info after execution. seems to be a bug with Astropy)
+- Need a column reordering function (Astropy function strips header details)
 
 ## Executing
 
