@@ -117,32 +117,6 @@ class FitsProcessor:
         return column
 
 
-
-    def reorder(self, input_path, order):
-        """
-        Reorder the output data columns according to the catalog.
-
-        Parameters:
-        -----------
-        input_path : str
-            Path of the input FITS file.
-        order : list
-            The order in which the columns should appear in the FITS data.
-        
-        """
-        try:
-            with fits.open(input_path, memmap=True, mode='update') as hdul:
-                data = Table(hdul[1].data)
-                data = data[order]
-                
-                new_data = data.as_array()  # Using _as_recarray() to preserve the metadata
-
-                hdul[1].data = new_data
-                hdul.flush()
-
-        except Exception as e:
-            print(f"\033[1mError reordering the FITS data : {e}\033[0m \n")
-
     
     def generate_poscatalog(self, input_path, output_path=None, display_output=False):
         """
@@ -163,9 +137,14 @@ class FitsProcessor:
         start_time = datetime.now()
 
         try:
+            if output_path is None:
+                print("\033[1mError: Please provide an output path to save the file.\033[0m \n")
+                return
+            
             self.open_fits(input_path)
 
             hdu = self.hdu_list[1]
+            primary_hdu = self.hdu_list[0]
             
             ## Step1 : 
             ## get the column names form the input catalog
@@ -213,33 +192,32 @@ class FitsProcessor:
             for item in excess_in_input:
                 columns.del_col(item)
 
-            evt_data = Table(self.hdu_list[1].data)
-            length_rows = len(evt_data)
+            length_rows = hdu.header['NAXIS2']
+            original_extname = hdu.header.get('EXTNAME', 'BINTABLE')
 
             columns = self.check_column_properties(columns, poscatalog_info)
 
-
+            columns_to_add = []
             for item in missing_from_input:
                 data = np.zeros(length_rows)
                 format = poscatalog_info[item]['format']
                 unit = poscatalog_info[item]['unit']
                 newcol = fits.Column(name=item, format=format, unit=unit, array=data)
-                columns.add_col(newcol)
-                print(columns)
+                columns_to_add.append(newcol)
 
-            print(f"Removed excess columns and added the missing ones ! \n")
-            print(columns)
+            # print(f"Removed excess columns and added the missing ones ! \n")
 
-            if output_path is None:
-                print("\033[1mError: Please provide an output path to save the file.\033[0m \n")
-                return
-            self.save_as_new(output_path)
+            all_columns = columns + fits.ColDefs(columns_to_add)
+            
+            new_hdu = fits.BinTableHDU.from_columns(all_columns)
+            new_hdu.header['EXTNAME'] = original_extname
+
+            output_hdu = fits.HDUList([primary_hdu, new_hdu])
+            output_hdu.writeto(output_path, overwrite=True)
 
             self.close_fits()
             del self.hdu_list
 
-            #reorder the columns
-            # self.reorder(input_path=output_path, order=poscatalog_colnames)
 
             if display_output:
                 print("\033[1mTo display output\033[0m \n")
@@ -275,9 +253,15 @@ class FitsProcessor:
         start_time = datetime.now()
 
         try:
+
+            if output_path is None:
+                print("\033[1mError: Please provide an output path to save the file.\033[0m \n")
+                return
+            
             self.open_fits(input_path)
 
             hdu = self.hdu_list[1]
+            primary_hdu = self.hdu_list[0]
             
             ## Step1 : 
             ## get the column names form the input catalog
@@ -344,33 +328,35 @@ class FitsProcessor:
             for item in excess_in_input:
                 columns.del_col(item)
 
-            evt_data = Table(hdu.data)
-            length_rows = len(evt_data)
+            # evt_data = Table(temp)
+            length_rows = hdu.header['NAXIS2']
+            original_extname = hdu.header.get('EXTNAME', 'BINTABLE')
 
             # check if all the column properties are present in the remaining data before adding new cols
-            self.check_column_properties(columns, shearcatalog_info)
+            columns = self.check_column_properties(columns, shearcatalog_info)
 
-
+            columns_to_add = []
             for item in missing_from_input:
                 data = np.zeros(length_rows)
                 format = shearcatalog_info[item]['format']
                 unit = shearcatalog_info[item]['unit']
                 newcol = fits.Column(name=item, format=format, unit=unit, array=data)
-                columns.add_col(newcol)
+                columns_to_add.append(newcol)
 
             # print(f"Removed excess columns and added the missing ones ! \n")
-
+            all_columns = columns + fits.ColDefs(columns_to_add)
 
             # save the output
-            if output_path is None:
-                print("\033[1mError: Please provide an output path to save the file.\033[0m \n")
-                return
-            self.save_as_new(output_path)
+            new_hdu = fits.BinTableHDU.from_columns(all_columns)
+            new_hdu.header['EXTNAME'] = original_extname
+
+            output_hdu = fits.HDUList([primary_hdu, new_hdu])
+            output_hdu.writeto(output_path, overwrite=True)
+            
+            # self.save_as_new(output_path)
             self.close_fits()
             del self.hdu_list
 
-            #reorder the columns
-            # self.reorder(input_path=output_path, order=shearcatalog_colnames)
 
             if display_output:
                 print("\033[1mTo display output\033[0m \n")
@@ -381,7 +367,6 @@ class FitsProcessor:
             # Calculate the time taken
             elapsed_time = end_time - start_time
             print(f"Execution time: {elapsed_time.total_seconds():.4f} seconds")
-
 
 
         except Exception as e:
@@ -410,6 +395,7 @@ class FitsProcessor:
             self.open_fits(input_path)
 
             hdu = self.hdu_list[1]
+            primary_hdu = self.hdu_list[0]
             
             ## Step1 : 
             ## get the column names form the input catalog
@@ -425,6 +411,10 @@ class FitsProcessor:
 
             ## Step 2 :
             ## see if the columns are according the requirements
+
+            if output_path is None:
+                print("\033[1mError: Please provide an output path to save the file.\033[0m \n")
+                return
 
             proxyshearcatalog_info =    {
                                         'RIGHT_ASCENSION': {'format': 'D', 'unit': 'deg'},
@@ -458,33 +448,34 @@ class FitsProcessor:
             for item in excess_in_input:
                 columns.del_col(item)
 
-            evt_data = Table(self.hdu_list[1].data)
-            length_rows = len(evt_data)
+            length_rows = hdu.header['NAXIS2']
+            original_extname = hdu.header.get('EXTNAME', 'BINTABLE')
 
             # check if all the column properties are present in the remaining data before adding new cols
             
             columns = self.check_column_properties(columns, proxyshearcatalog_info)
 
+            columns_to_append = []
 
             for item in missing_from_input:
                 data = np.zeros(length_rows)
                 format = proxyshearcatalog_info[item]['format']
                 unit = proxyshearcatalog_info[item]['unit']
                 newcol = fits.Column(name=item, format=format, unit=unit, array=data)
-                columns.add_col(newcol)
+                columns_to_append.append(newcol)
 
-            # print(f"Removed excess columns and added the missing ones ! \n")
+            all_columns = columns + fits.ColDefs(columns_to_append)
 
-            if output_path is None:
-                print("\033[1mError: Please provide an output path to save the file.\033[0m \n")
-                return
-            self.save_as_new(output_path)
+            new_hdu = fits.BinTableHDU.from_columns(all_columns)
+            new_hdu.header['EXTNAME'] = original_extname
 
+            output_hdu = fits.HDUList([primary_hdu, new_hdu])
+            output_hdu.writeto(output_path, overwrite=True)
+
+            # self.save_as_new(output_path)
             self.close_fits()
             del self.hdu_list
 
-            #reorder the columns
-            # self.reorder(input_path=output_path, order=proxyshearcatalog_colnames)
 
             if display_output:
                 print("\033[1mTo display output\033[0m \n")
@@ -500,6 +491,7 @@ class FitsProcessor:
         except Exception as e:
             print(f"\033[1mError generating the PROXYSHEAR_CATALOG : {e}\033[0m \n")
 
+      
         
 
 if __name__ == "__main__":
