@@ -193,7 +193,6 @@ class FitsProcessor:
                 columns.del_col(item)
 
             length_rows = hdu.header['NAXIS2']
-            original_extname = hdu.header.get('EXTNAME', 'BINTABLE')
 
             columns = self.check_column_properties(columns, poscatalog_info)
 
@@ -210,8 +209,17 @@ class FitsProcessor:
             all_columns = columns + fits.ColDefs(columns_to_add)
             
             new_hdu = fits.BinTableHDU.from_columns(all_columns)
-            new_hdu.header['EXTNAME'] = original_extname
+            new_hdu.header['EXTNAME'] = 'POS_CATALOG'
+            new_hdu.header.comments['EXTNAME'] = 'name of this binary table extension'
 
+            # print(f"Primary HDU: {primary_hdu.header}")
+            with open('fileinfo/pos_header.txt', 'r') as header_file:
+                header_str = header_file.read()
+
+            # Convert the string back to an Astropy Header object
+            primary_header = fits.Header.fromstring(header_str)
+
+            primary_hdu.header = primary_header
             output_hdu = fits.HDUList([primary_hdu, new_hdu])
             output_hdu.writeto(output_path, overwrite=True)
 
@@ -330,7 +338,6 @@ class FitsProcessor:
 
             # evt_data = Table(temp)
             length_rows = hdu.header['NAXIS2']
-            original_extname = hdu.header.get('EXTNAME', 'BINTABLE')
 
             # check if all the column properties are present in the remaining data before adding new cols
             columns = self.check_column_properties(columns, shearcatalog_info)
@@ -348,7 +355,16 @@ class FitsProcessor:
 
             # save the output
             new_hdu = fits.BinTableHDU.from_columns(all_columns)
-            new_hdu.header['EXTNAME'] = original_extname
+            new_hdu.header['EXTNAME'] = 'WL_CATALOG'
+            new_hdu.header.comments['EXTNAME'] = 'name of this binary table extension'
+
+            with open('fileinfo/shear_header.txt', 'r') as header_file:
+                header_str = header_file.read()
+
+            # Convert the string back to an Astropy Header object
+            primary_header = fits.Header.fromstring(header_str)
+
+            primary_hdu.header = primary_header
 
             output_hdu = fits.HDUList([primary_hdu, new_hdu])
             output_hdu.writeto(output_path, overwrite=True)
@@ -419,10 +435,10 @@ class FitsProcessor:
             proxyshearcatalog_info =    {
                                         'RIGHT_ASCENSION': {'format': 'D', 'unit': 'deg'},
                                         'DECLINATION': {'format': 'D', 'unit': 'deg'},
-                                        'G1': {'format': 'E', 'unit': None},
-                                        'G2': {'format': 'E', 'unit': None},
-                                        'TOM_BIN_ID': {'format': 'J', 'unit': None},
-                                        'WEIGHT': {'format': 'E', 'unit': None}
+                                        'G1': {'format': 'E', 'unit': 'NA'},
+                                        'G2': {'format': 'E', 'unit': 'NA'},
+                                        'TOM_BIN_ID': {'format': 'J', 'unit': 'NA'},
+                                        'WEIGHT': {'format': 'E', 'unit': 'NA'}
                                         }
             
             proxyshearcatalog_colnames = list(proxyshearcatalog_info.keys()) #this is the order in which the columns should appear
@@ -449,10 +465,8 @@ class FitsProcessor:
                 columns.del_col(item)
 
             length_rows = hdu.header['NAXIS2']
-            original_extname = hdu.header.get('EXTNAME', 'BINTABLE')
 
             # check if all the column properties are present in the remaining data before adding new cols
-            
             columns = self.check_column_properties(columns, proxyshearcatalog_info)
 
             columns_to_append = []
@@ -461,13 +475,23 @@ class FitsProcessor:
                 data = np.zeros(length_rows)
                 format = proxyshearcatalog_info[item]['format']
                 unit = proxyshearcatalog_info[item]['unit']
+                # comment = 'This is a test comment'
                 newcol = fits.Column(name=item, format=format, unit=unit, array=data)
                 columns_to_append.append(newcol)
 
             all_columns = columns + fits.ColDefs(columns_to_append)
 
             new_hdu = fits.BinTableHDU.from_columns(all_columns)
-            new_hdu.header['EXTNAME'] = original_extname
+            new_hdu.header['EXTNAME'] = 'SOURCE_CATALOG'
+            new_hdu.header.comments['EXTNAME'] = 'extension name'
+
+            with open('fileinfo/proxyshear_header.txt', 'r') as header_file:
+                header_str = header_file.read()
+
+            # Convert the string back to an Astropy Header object
+            primary_header = fits.Header.fromstring(header_str)
+
+            primary_hdu.header = primary_header
 
             output_hdu = fits.HDUList([primary_hdu, new_hdu])
             output_hdu.writeto(output_path, overwrite=True)
@@ -490,8 +514,6 @@ class FitsProcessor:
 
         except Exception as e:
             print(f"\033[1mError generating the PROXYSHEAR_CATALOG : {e}\033[0m \n")
-
-      
         
 
 if __name__ == "__main__":
