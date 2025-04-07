@@ -213,7 +213,7 @@ class FitsProcessor:
             new_hdu.header.comments['EXTNAME'] = 'name of this binary table extension'
 
             # print(f"Primary HDU: {primary_hdu.header}")
-            with open('fileinfo/pos_header.txt', 'r') as header_file:
+            with open('primaryheaderinfo/pos_header.txt', 'r') as header_file:
                 header_str = header_file.read()
 
             # Convert the string back to an Astropy Header object
@@ -358,7 +358,7 @@ class FitsProcessor:
             new_hdu.header['EXTNAME'] = 'WL_CATALOG'
             new_hdu.header.comments['EXTNAME'] = 'name of this binary table extension'
 
-            with open('fileinfo/shear_header.txt', 'r') as header_file:
+            with open('primaryheaderinfo/shear_header.txt', 'r') as header_file:
                 header_str = header_file.read()
 
             # Convert the string back to an Astropy Header object
@@ -485,7 +485,7 @@ class FitsProcessor:
             new_hdu.header['EXTNAME'] = 'SOURCE_CATALOG'
             new_hdu.header.comments['EXTNAME'] = 'extension name'
 
-            with open('fileinfo/proxyshear_header.txt', 'r') as header_file:
+            with open('primaryheaderinfo/proxyshear_header.txt', 'r') as header_file:
                 header_str = header_file.read()
 
             # Convert the string back to an Astropy Header object
