@@ -1,29 +1,17 @@
 # FitsProcessor
 
 ## Functionality
-Has the ability to create three different catalogs (position, shear, proxyshear) from a given huge catalog.
-- Adds missing columns (values initialised with `np.zeroes()` for now) and deletes columns not required.
-- Retains the unit and format from the original catalog, adds if missing.
-- Need a column reordering function (Astropy function strips header details)
+
+Has the ability to create three different catalogs (position, shear, proxyshear) from the sim fits file and the FitsDataModel xml file.
 
 ## Executing
 
-### Step 1
-Modify the contents of the `if __name__ == "__main__":` block according to requirements-
+See the `example_run.py` file, modify the `input_fits_path`, `output_dir` and `catalog` parameters according to requirements.
 
-To generate the position catalog add:\
-`fits_handler.generate_poscatalog(input_path=input_fits, output_path=output_fits, display_output=True)`
+All the files that are required by the program (e.g. FitsDataModel.xml) should be in the 'raw' folder at the root of the project directory.
 
-To generate the shear catalog add:\
-`fits_handler.generate_shearcatalog(input_path=input_fits, output_path=output_fits, display_output=True)`
+All the files generated from this program will be saved in the 'generated' folder present at the root of the project directory.
 
-To generate the proxyshear catalog add:\
-`fits_handler.generate_proxyshearcatalog(input_path=input_fits, output_path=output_fits, display_output=True)`
+If you want to use a custom FitsDataModel xml file to generate the outputs, you can pass an additional `fitsDataModel_path` parameter in the `generate_catalog` function.
 
-To just see the contents of a *.fits file add:\
-`fits_handler.display_contents(input_path=input_fits)`
-
-### Step 2
-
-Save and run the script.\
-The catalogs should now be generated!
+Run this modified `example_run.py` file and the catalogs should be generated!

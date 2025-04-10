@@ -1,0 +1,13 @@
+# venv files
+.venv
+
+#pycache
+__pycache__/
+
+#locally stored data files
+*.fits
+*.json
+*.xml
+
+run.py
+testscript.py

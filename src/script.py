@@ -1,0 +1,280 @@
+from astropy.io import fits
+from astropy.table import Table
+import numpy as np
+from datetime import datetime
+import json
+from helpers import *
+
+
+class FitsProcessor:
+    def __init__(self):
+        self.hdu_list = None
+
+    def open_fits(self, input_fits_path):
+        """
+        Open the FITS file.
+
+        Parameters:
+        -----------
+        input_fits_path : str
+            Path of the input FITS file.
+        
+        """
+        try:
+            self.hdu_list = fits.open(input_fits_path, memmap=True)
+            print("\033[1mOpening the FITS file . . .\033[0m \n")
+        except Exception as e:
+            print(f"\033[1mError opening FITS file : {e}\033[0m \n")
+
+    def save_as_new(self, output_path):
+        """
+        Save the modified FITS file to a new location.
+
+        Parameters:
+        -----------
+        output_path : str
+            The path where the modified FITS file should be saved.
+
+        """
+        if self.hdu_list is None:
+            print("\033[1mNo FITS file loaded.\033[0m \n")
+            return
+        
+        try:
+            self.hdu_list.writeto(output_path, overwrite=True)
+            print(f"\033[1mModified FITS file saved to {output_path}.\033[0m \n")
+        except Exception as e:
+            print(f"\033[1mError saving FITS file : {e}\033[0m \n")
+
+    def close_fits(self):
+        """
+        Close the FITS file.
+        
+        Parameters:
+        -----------
+        None
+
+        """
+        if self.hdu_list:
+            self.hdu_list.close()
+            print("\033[1mFITS file closed.\033[0m \n")
+
+    def display_contents(self, input_fits_path):
+        """
+        Display the contents of the FITS file.
+
+        Parameters:
+        -----------
+        input_fits_path : str
+            Path of the input FITS file.
+
+        """        
+        try:
+            self.open_fits(input_fits_path)
+
+            print("\033[1mContent info :\033[0m \n")
+            self.hdu_list.info()
+
+            print("\033[1mHeader info :\033[0m \n")
+            header1 = self.hdu_list[0].header
+            header2 = self.hdu_list[1].header
+
+            print(header1)
+            print(header2)
+
+            print("\033[1mColumn info :\033[0m \n")
+            print(self.hdu_list[1].columns)
+
+            print("\033[1mContent data :\033[0m \n")
+            evt_data = Table(self.hdu_list[1].data)
+            print(evt_data)
+
+            self.close_fits()
+            del self.hdu_list
+
+
+        except Exception as e:
+            print(f"\033[1mError displaying the contents of the FITS file : {e}\033[0m \n")
+
+    def check_column_properties(self, column, catalog_info):
+        """
+        Checks if the columns in the existing FITS files have the proper unit and format as compared to the catalog. Only adds if it is missing. Does not convert. Returns new column object.
+
+        Parameters:
+        -----------
+        column : class object
+            Astropy class object of the input FITS file <class 'astropy.io.fits.column.ColDefs'>
+        catalog_info : dict
+            Dictionary of dictionaries containing information about the columns in the catalog. {'column1' : {'format' : 'D', 'unit' : 'deg'}}
+        
+        """
+        for colname in column.names:
+            col = column[colname]
+            col_format = col.format
+            col_unit = col.unit
+
+            if col_format in ('', None): col.format = catalog_info[colname]['format']
+            if col_unit in ('', None): col.unit = catalog_info[colname]['unit']
+            
+        return column
+
+
+    
+    def generate_catalog(self, type, input_fits_path, output_path=None, fitsDataModel_path=None, display_output=False):
+        """
+        Generate the desired CATALOG (either 'POS' or 'SHEAR' or 'PROXYSHEAR') from the input FITS file.
+
+        Parameters:
+        -----------
+        type : str
+            The type of catalog to be genrated (either 'POS' or 'SHEAR' or 'PROXYSHEAR')
+        input_fits_path : str
+            Path of the input FITS file.
+        display_output : bool, optional, default = False
+            display the output after catalog generation (if set to True)
+        output_path : str, optional, default = None
+            path where the output catalog is to be saved
+        fitsDataModel_path : str, optional, default = None
+            optional argument to get the fitsDataModel xml of a Data Product
+
+        """
+        start_time = datetime.now()
+
+        try:
+            if type not in ['POS', 'SHEAR', 'PROXYSHEAR']:
+                print("\033[1mError: Please provide a correct 'type'.\033[0m \n")
+                return
+            
+            if output_path is None:
+                print("\033[1mError: Please provide an output path to save the file.\033[0m \n")
+                return
+            
+            if fitsDataModel_path is None:
+                fitsDataModel_path = 'raw/FitsDataModel.xml'
+
+            
+            # get the json data from FitsDataModel xml
+            FitsFormat_ids = get_all_fits_format_ids(fitsDataModel_path=fitsDataModel_path)
+            catalog_name = 'le3.id.vmpz.output.' + type.lower() + 'catalog'
+            if catalog_name not in FitsFormat_ids:
+                print("\033[1mError: Provided catalog type is not in the FitsDataModel.\033[0m \n")
+                return
+
+            extract_data_for_id(catalog_name, fitsDataModel_path=fitsDataModel_path)
+
+    
+            self.open_fits(input_fits_path)
+
+            hdu = self.hdu_list[1]
+            primary_hdu = self.hdu_list[0]
+            
+            ## Step1 : 
+            ## get the column names form the input catalog
+
+            if isinstance(hdu, fits.BinTableHDU):
+                columns = hdu.columns
+                print(columns)
+                column_names = [col.name for col in columns]
+                # print(f"Columns in input : {column_names}")
+            
+            else:
+                print("The specified HDU does not contain a binary table.")
+                return []
+
+            ## Step 2 :
+            ## get the column info from the json file
+            cat = type.lower()
+            json_file = f'generated/extracted_data_le3.id.vmpz.output.{cat}catalog.json'
+
+
+            with open(json_file, 'r') as file:
+                json_data = json.load(file)
+            
+            # Extract the column list from the 'table_hdu' section
+            table_hdu_info = json_data.get("table_hdu", {})
+            columns_info = {}
+            
+            # Check if 'columns' exists in the 'table_hdu'
+            if "columns" in table_hdu_info:
+                for column in table_hdu_info["columns"]:
+                    column_name = column.get("name")
+                    column_info = {
+                        "format": column.get("format"),
+                        "unit": column.get("unit"),
+                        "comment": column.get("comment")
+                    }
+                    columns_info[column_name] = column_info
+
+            
+            catalog_colnames = list(columns_info.keys()) #this is the order in which the columns should appear
+            # print(f"Columns required : {catalog_colnames}")
+
+
+            # Convert both lists to set to count the frequency of each element
+            set_input = set(column_names)
+            set_catalog = set(catalog_colnames)
+            
+            # Elements missing from input
+            missing_from_input = list(set_catalog - set_input)
+            
+            # Excess elements in input
+            excess_in_input = list(set_input - set_catalog)
+
+            print(f"Missing : {missing_from_input}")
+            print(f"Excess : {excess_in_input}")
+
+            ## Step 3 :
+            ## modify the columns (add/remove if required)
+
+            for item in excess_in_input:
+                columns.del_col(item)
+
+            length_rows = hdu.header['NAXIS2']
+
+            columns = self.check_column_properties(columns, columns_info)
+
+            columns_to_add = []
+            for item in missing_from_input:
+                data = np.zeros(length_rows)
+                format = columns_info[item]['format']
+                unit = columns_info[item]['unit']
+                newcol = fits.Column(name=item, format=format, unit=unit, array=data)
+                columns_to_add.append(newcol)
+
+            # print(f"Removed excess columns and added the missing ones ! \n")
+
+            all_columns = columns + fits.ColDefs(columns_to_add)
+            
+            reordered_columns = [col for col_name in catalog_colnames
+                                for col in all_columns
+                                if col.name == col_name]
+
+            # Create a new HDU with the reordered columns
+            new_hdu = fits.BinTableHDU.from_columns(reordered_columns)
+
+
+            table_hdu_info = json_data.get("table_hdu", {})
+            table_hdu_name = table_hdu_info.get("name")
+
+            new_hdu.header['EXTNAME'] = table_hdu_name
+  
+            output_hdu = fits.HDUList([primary_hdu, new_hdu])
+            output_path = output_path + f'{type.lower()}catalog.fits'
+            output_hdu.writeto(output_path, overwrite=True)
+
+            self.close_fits()
+            del self.hdu_list
+
+
+            if display_output:
+                print("\033[1mTo display output\033[0m \n")
+                self.display_contents(input_fits_path=output_path)
+
+            end_time = datetime.now()
+            
+            # Calculate the time taken
+            elapsed_time = end_time - start_time
+            print(f"Execution time: {elapsed_time.total_seconds():.4f} seconds")
+
+        except Exception as e:
+            print(f"\033[1mError generating the {type}_CATALOG : {e}\033[0m \n")
