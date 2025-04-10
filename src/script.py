@@ -5,7 +5,6 @@ from datetime import datetime
 import json
 from helpers import *
 
-
 class FitsProcessor:
     def __init__(self):
         self.hdu_list = None
@@ -119,7 +118,6 @@ class FitsProcessor:
         return column
 
 
-    
     def generate_catalog(self, type, input_fits_path, output_path=None, fitsDataModel_path=None, display_output=False):
         """
         Generate the desired CATALOG (either 'POS' or 'SHEAR' or 'PROXYSHEAR') from the input FITS file.
@@ -141,60 +139,59 @@ class FitsProcessor:
         start_time = datetime.now()
 
         try:
+            # basic checks for the input params
             if type not in ['POS', 'SHEAR', 'PROXYSHEAR']:
                 print("\033[1mError: Please provide a correct 'type'.\033[0m \n")
                 return
-            
             if output_path is None:
                 print("\033[1mError: Please provide an output path to save the file.\033[0m \n")
                 return
-            
+            # check if the path is present else define what consider as the FitsDataModel xml
             if fitsDataModel_path is None:
                 fitsDataModel_path = 'raw/FitsDataModel.xml'
 
             
-            # get the json data from FitsDataModel xml
+            # generate the json data file from FitsDataModel xml
             FitsFormat_ids = get_all_fits_format_ids(fitsDataModel_path=fitsDataModel_path)
+
             catalog_name = 'le3.id.vmpz.output.' + type.lower() + 'catalog'
+            
             if catalog_name not in FitsFormat_ids:
                 print("\033[1mError: Provided catalog type is not in the FitsDataModel.\033[0m \n")
                 return
 
             extract_data_for_id(catalog_name, fitsDataModel_path=fitsDataModel_path)
 
-    
+
+            # access the input fits file
             self.open_fits(input_fits_path)
 
             hdu = self.hdu_list[1]
             primary_hdu = self.hdu_list[0]
-            
-            ## Step1 : 
-            ## get the column names form the input catalog
 
+            # get the column names form the input catalog
             if isinstance(hdu, fits.BinTableHDU):
                 columns = hdu.columns
                 print(columns)
                 column_names = [col.name for col in columns]
                 # print(f"Columns in input : {column_names}")
-            
             else:
                 print("The specified HDU does not contain a binary table.")
                 return []
 
-            ## Step 2 :
+
             ## get the column info from the json file
             cat = type.lower()
             json_file = f'generated/extracted_data_le3.id.vmpz.output.{cat}catalog.json'
 
-
             with open(json_file, 'r') as file:
                 json_data = json.load(file)
             
-            # Extract the column list from the 'table_hdu' section
+            # extract the column list from the 'table_hdu' section
             table_hdu_info = json_data.get("table_hdu", {})
             columns_info = {}
             
-            # Check if 'columns' exists in the 'table_hdu'
+            # check if 'columns' exists in the 'table_hdu'
             if "columns" in table_hdu_info:
                 for column in table_hdu_info["columns"]:
                     column_name = column.get("name")
@@ -205,12 +202,12 @@ class FitsProcessor:
                     }
                     columns_info[column_name] = column_info
 
-            
+
             catalog_colnames = list(columns_info.keys()) #this is the order in which the columns should appear
             # print(f"Columns required : {catalog_colnames}")
 
 
-            # Convert both lists to set to count the frequency of each element
+            # convert both lists to set to count the frequency of each element
             set_input = set(column_names)
             set_catalog = set(catalog_colnames)
             
@@ -220,12 +217,11 @@ class FitsProcessor:
             # Excess elements in input
             excess_in_input = list(set_input - set_catalog)
 
-            print(f"Missing : {missing_from_input}")
-            print(f"Excess : {excess_in_input}")
+            # print(f"Missing : {missing_from_input}")
+            # print(f"Excess : {excess_in_input}")
 
-            ## Step 3 :
-            ## modify the columns (add/remove if required)
 
+            # modify the columns (add/remove if required) and then order them according to the FitsDataModel xml [this is done in-memory]
             for item in excess_in_input:
                 columns.del_col(item)
 
@@ -252,7 +248,6 @@ class FitsProcessor:
             # Create a new HDU with the reordered columns
             new_hdu = fits.BinTableHDU.from_columns(reordered_columns)
 
-
             table_hdu_info = json_data.get("table_hdu", {})
             table_hdu_name = table_hdu_info.get("name")
 
@@ -272,7 +267,7 @@ class FitsProcessor:
 
             end_time = datetime.now()
             
-            # Calculate the time taken
+            # calculate the time taken
             elapsed_time = end_time - start_time
             print(f"Execution time: {elapsed_time.total_seconds():.4f} seconds")
 

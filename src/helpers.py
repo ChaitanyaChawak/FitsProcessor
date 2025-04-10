@@ -1,13 +1,9 @@
 import xml.etree.ElementTree as ET
 import json
 
-
-
-
-# Function to extract all FitsFormat IDs
 def get_all_fits_format_ids(fitsDataModel_path=None):
     """
-    Get a list of all the FitsFormat IDs in the xml file
+    Gets a list of all the FitsFormat IDs from the FitsDataModel xml file
 
     Parameters:
     -----------
@@ -19,10 +15,10 @@ def get_all_fits_format_ids(fitsDataModel_path=None):
     List of all the FitsFormat IDs
     
     """
+    # check if the path is present else define what consider as the FitsDataModel xml
     if fitsDataModel_path is None:
         fitsDataModel_path = 'raw/FitsDataModel.xml'
 
-    # Parse the XML file
     tree = ET.parse(fitsDataModel_path)
     root = tree.getroot()
 
@@ -54,7 +50,6 @@ def extract_keywords(header_keyword_list):
         keywords.append(keyword_info)
     return keywords
 
-# Function to extract data only for a specific FitsFormat id
 def extract_data_for_id(fits_format_id, fitsDataModel_path=None):
     """
     Extracts data corresponding to a particular FitsFormat ID from the Data Model XML file and dumps it to a JSON file.
@@ -67,17 +62,16 @@ def extract_data_for_id(fits_format_id, fitsDataModel_path=None):
         optional argument to get the fitsDataModel xml of a Data Product
 
     """
+    # check if the path is present else define what consider as the FitsDataModel xml
     if fitsDataModel_path is None:
         fitsDataModel_path = 'raw/FitsDataModel.xml'
 
-    # Parse the XML file
     tree = ET.parse(fitsDataModel_path)
     root = tree.getroot()
     
     # Find the FitsFormat element by 'id' attribute
     fits_format = root.find(f".//FitsFormat[@id='{fits_format_id}']")
 
-    # If FitsFormat with the specific 'id' is found
     if fits_format is not None:
         fits_format_info = {
             "id": fits_format.get("id"),
