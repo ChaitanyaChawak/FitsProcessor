@@ -1,17 +1,34 @@
 # FitsProcessor
 
-## Functionality
+A program to create three different catalogs (position, shear, proxyshear) from the sim fits file and the FitsDataModel xml.
 
-Has the ability to create three different catalogs (position, shear, proxyshear) from the sim fits file and the FitsDataModel xml file.
+## Installation
 
-## Executing
+To install the package, clone the repository, navigate to the project directory and run:
 
-See the `example_run.py` file, modify the `input_fits_path`, `output_dir` and `catalog` parameters according to requirements.
+```bash
+pip install .
+```
+
+## Configuration
+
+Before running the program, modify the `src/config/inputs.yaml` file to specify the input parameters. Make sure that it has the following parameters:
+- input_fits_path
+- output_directory
+- catalog_type
+- fits_data_model
+- display_output
 
 All the files that are required by the program (e.g. FitsDataModel.xml) should be in the 'raw' folder at the root of the project directory.
 
 All the files generated from this program will be saved in the 'generated' folder present at the root of the project directory.
 
-If you want to use a custom FitsDataModel xml file to generate the outputs, you can pass an additional `fitsDataModel_path` parameter in the `generate_catalog` function.
+## Executing
 
-Run this modified `example_run.py` file and the catalogs should be generated!
+After configuring the inputs, run the program using:
+
+```bash
+python src/example_run.py
+```
+
+This will generate the catalogs based on the specified inputs.

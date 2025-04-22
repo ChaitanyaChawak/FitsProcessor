@@ -1,0 +1,5 @@
+input_fits_path: "/local/home/cc282614/Downloads/19865.fits"
+output_directory: "generated/"
+catalog_type: "PROXYSHEAR"  # Options: 'POS', 'SHEAR', 'PROXYSHEAR'
+fits_data_model: "raw/FitsDataModel.xml"
+display_output: True

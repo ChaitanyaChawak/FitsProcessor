@@ -9,5 +9,10 @@ __pycache__/
 *.json
 *.xml
 
+# build artifacts
+dist/
+build/
+*.egg-info/
+
 run.py
 testscript.py
