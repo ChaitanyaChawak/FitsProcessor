@@ -15,7 +15,8 @@ requires-python = ">=3.8"
 dependencies = [
     "astropy>=5.0",
     "numpy>=1.21",
-    "pyyaml>=6.0"
+    "pyyaml>=6.0",
+    "requests>=2.25.0"
 ]
 
 [project.urls]

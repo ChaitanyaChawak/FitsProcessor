@@ -8,6 +8,8 @@ __pycache__/
 *.fits
 *.json
 *.xml
+generated/ST_DataModel*
+generated/ST_FitsDataModel*
 
 # build artifacts
 dist/

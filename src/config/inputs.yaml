@@ -1,5 +1,16 @@
-input_fits_path: "/local/home/cc282614/Downloads/19865.fits"
+# modify these
+input_fits_path: "/path/to/input.fits"
 output_directory: "generated/"
 catalog_type: "PROXYSHEAR"  # Options: 'POS', 'SHEAR', 'PROXYSHEAR'
-fits_data_model: "raw/FitsDataModel.xml"
+data_model: "latest"  # Options: 'latest'; '<specific_version>' (e.g. '9.2.3'); '<path_to_file> (e.g. 'raw/DataModel.xml')
+fits_data_model: "raw/FitsDataModel.xml" # Options: 'latest'; '<specific_version>' (e.g. '9.2.3'); '<path_to_file> (e.g. 'raw/FitsDataModel.xml')'
 display_output: True
+
+PAT: "<gitlab_personal_access_token>"
+
+# do not modify these
+gitlab_DM_tags_url: "https://gitlab.euclid-sgs.uk/api/v4/projects/ST-DM%2FST_DataModel/repository/tags"
+gitlab_DM_base_url: "https://gitlab.euclid-sgs.uk/ST-DM/ST_DataModel"
+
+gitlab_FitsDM_tags_url: "https://gitlab.euclid-sgs.uk/api/v4/projects/ST-DM%2FST_FitsDataModel/repository/tags"
+gitlab_FitsDM_base_url: "https://gitlab.euclid-sgs.uk/ST-DM/ST_FitsDataModel"
