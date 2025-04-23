@@ -12,12 +12,15 @@ pip install .
 
 ## Configuration
 
-Before running the program, modify the `src/config/inputs.yaml` file to specify the input parameters. Make sure that it has the following parameters:
+Before running the program, modify the `src/config/inputs.yaml` file to specify the following parameters:
 - input_fits_path
-- output_directory
-- catalog_type
-- fits_data_model
-- display_output
+- product_id \
+(Example: 'le3.id.vmpz.output.shearcatalog'; 'le3.id.vmpz.output.poscatalog'; 'le3.id.vmpz.output.proxyshearcatalog')
+- data_model \
+(Example: 'latest' OR '<specific_version>' (e.g. '9.2.3') OR '<path_to_file>' (e.g. 'raw/DataModel.xml'))
+- fits_data_model (Example: 'latest' OR '<specific_version>' (e.g. '9.2.3') OR '<path_to_file>' (e.g. 'raw/FitsDataModel.xml'))
+- display_output fits (bool)
+- PAT (the Personal Access Token for your Gitlab account - with at least read permission)
 
 All the files that are required by the program (e.g. FitsDataModel.xml) should be in the 'raw' folder at the root of the project directory.
 

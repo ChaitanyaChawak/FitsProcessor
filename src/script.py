@@ -118,14 +118,14 @@ class FitsProcessor:
         return column
 
 
-    def generate_catalog(self, type, input_fits_path, output_path=None, fitsDataModel_path=None, display_output=False):
+    def generate_catalog(self, product_id, input_fits_path, output_path=None, fitsDataModel_path=None, display_output=False):
         """
         Generate the desired CATALOG (either 'POS' or 'SHEAR' or 'PROXYSHEAR') from the input FITS file.
 
         Parameters:
         -----------
-        type : str
-            The type of catalog to be genrated (either 'POS' or 'SHEAR' or 'PROXYSHEAR')
+        product_id : str
+            The product_id of catalog to be genrated (either 'POS' or 'SHEAR' or 'PROXYSHEAR')
         input_fits_path : str
             Path of the input FITS file.
         display_output : bool, optional, default = False
@@ -140,28 +140,18 @@ class FitsProcessor:
 
         try:
             # basic checks for the input params
-            if type not in ['POS', 'SHEAR', 'PROXYSHEAR']:
-                print("\033[1mError: Please provide a correct 'type'.\033[0m \n")
-                return
+            
             if output_path is None:
                 print("\033[1mError: Please provide an output path to save the file.\033[0m \n")
                 return
-            # check if the path is present else define what consider as the FitsDataModel xml
-            if fitsDataModel_path is None:
-                fitsDataModel_path = 'raw/FitsDataModel.xml'
 
-            
             # generate the json data file from FitsDataModel xml
             FitsFormat_ids = get_all_fits_format_ids(fitsDataModel_path=fitsDataModel_path)
 
-            catalog_name = 'le3.id.vmpz.output.' + type.lower() + 'catalog'
-            
-            if catalog_name not in FitsFormat_ids:
-                print("\033[1mError: Provided catalog type is not in the FitsDataModel.\033[0m \n")
-                return
+            if product_id not in FitsFormat_ids:
+                raise ValueError(f"Provided catalog type '{product_id}' is not in the FitsDataModel. \nDid you mean to use one of these? \n{FitsFormat_ids}")
 
-            extract_data_for_id(catalog_name, fitsDataModel_path=fitsDataModel_path)
-
+            extract_data_for_id(product_id, fitsDataModel_path=fitsDataModel_path)
 
             # access the input fits file
             self.open_fits(input_fits_path)
@@ -181,8 +171,7 @@ class FitsProcessor:
 
 
             ## get the column info from the json file
-            cat = type.lower()
-            json_file = f'generated/extracted_data_le3.id.vmpz.output.{cat}catalog.json'
+            json_file = f'generated/extracted_data_{product_id}.json'
 
             with open(json_file, 'r') as file:
                 json_data = json.load(file)
@@ -254,7 +243,7 @@ class FitsProcessor:
             new_hdu.header['EXTNAME'] = table_hdu_name
   
             output_hdu = fits.HDUList([primary_hdu, new_hdu])
-            output_path = output_path + f'{type.lower()}catalog.fits'
+            output_path = output_path + f'{product_id}.fits'
             output_hdu.writeto(output_path, overwrite=True)
 
             self.close_fits()
@@ -272,4 +261,4 @@ class FitsProcessor:
             print(f"Execution time: {elapsed_time.total_seconds():.4f} seconds")
 
         except Exception as e:
-            print(f"\033[1mError generating the {type}_CATALOG : {e}\033[0m \n")
+            print(f"\033[1mError generating the catalog for {product_id} : {e}\033[0m \n")

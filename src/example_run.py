@@ -15,7 +15,7 @@ if __name__ == "__main__":
     # get the input parameters from the config
     input_fits_path = config["input_fits_path"]
     output_dir = config["output_directory"]
-    catalog_type = config["catalog_type"]
+    product_id = config["product_id"]
     fits_data_model = config["fits_data_model"]
     data_model = config["data_model"]
     display_output = config["display_output"]
@@ -119,7 +119,7 @@ if __name__ == "__main__":
 
     # to generate the catalog
     fits_handler.generate_catalog(
-        type=catalog_type,
+        product_id=product_id,
         input_fits_path=input_fits_path,
         fitsDataModel_path=fits_data_model_path,
         output_path=output_dir,

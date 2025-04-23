@@ -2,11 +2,14 @@ All the program scripts are stored in this `src` folder present at the root of t
 
 File descriptions:
 
+>`config/inputs.yaml`\
+modify this file according to requirements before running `example_run.py`
+
 >`example_run.py`\
-modify and run this file to generate the catalogues
+run this file to generate the catalogues
 
 >`helpers.py`\
-contains functions that help in data extraction from the FitsDataModel xml file
+contains functions that help in required data extraction from the FitsDataModel
 
 >`script.py`\
 defines the class and the primary functions
