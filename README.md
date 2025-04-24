@@ -18,7 +18,8 @@ Before running the program, modify the `src/config/inputs.yaml` file to specify 
 (Example: 'le3.id.vmpz.output.shearcatalog'; 'le3.id.vmpz.output.poscatalog'; 'le3.id.vmpz.output.proxyshearcatalog')
 - data_model \
 (Example: 'latest' OR '<specific_version>' (e.g. '9.2.3') OR '<path_to_file>' (e.g. 'raw/DataModel.xml'))
-- fits_data_model (Example: 'latest' OR '<specific_version>' (e.g. '9.2.3') OR '<path_to_file>' (e.g. 'raw/FitsDataModel.xml'))
+- fits_data_model \
+(Example: 'latest' OR '<specific_version>' (e.g. '9.2.3') OR '<path_to_file>' (e.g. 'raw/FitsDataModel.xml'))
 - display_output fits (bool)
 - PAT (the Personal Access Token for your Gitlab account - with at least read permission)
 

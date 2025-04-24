@@ -1,6 +1,7 @@
 import yaml
 import requests
 import os
+import zipfile
 from script import FitsProcessor
 
 def load_config(config_path):
@@ -61,7 +62,6 @@ if __name__ == "__main__":
             zip_file.write(response.content)
 
         # Extract the zip file
-        import zipfile
         with zipfile.ZipFile(zip_file_path, "r") as zip_ref:
             zip_ref.extractall(output_dir)
 
@@ -105,10 +105,10 @@ if __name__ == "__main__":
             zip_file.write(response.content)
 
         # Extract the zip file
-        import zipfile
         with zipfile.ZipFile(zip_file_path, "r") as zip_ref:
             zip_ref.extractall(output_dir)
 
+        # get the path to the fits_data_model xml file
         fits_data_model_path = f'generated/ST_FitsDataModel-{tag}/ST_DM_FitsSchema/auxdir/ST_DM_FitsSchema/instances/fit/euc-le3-id.xml'
         
         if not os.path.exists(fits_data_model_path):
