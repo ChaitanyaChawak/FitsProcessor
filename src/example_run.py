@@ -13,21 +13,32 @@ if __name__ == "__main__":
 
     config = load_config("src/config/inputs.yaml")
 
-    # get the input parameters from the config
-    input_fits_path = config["input_fits_path"]
-    output_dir = config["output_directory"]
-    product_id = config["product_id"]
-    fits_data_model = config["fits_data_model"]
-    data_model = config["data_model"]
-    display_output = config["display_output"]
+    # get the input parameters from the config else use a default
+    input_fits_path = config.get("input_fits_path", None)  # Default path if not provided
+    output_dir = "generated/"
+    product_id = config.get("product_id", None)  # Default product ID if not provided
+    fits_data_model = config.get("fits_data_model", "latest")  # Default to latest if not provided
+    data_model = config.get("data_model", "latest")  # Default to latest if not provided
+    display_output = config.get("display_output", False)  # Default to False if not provided
 
+    # handle PAT
+    if "PAT" not in config:
+        raise ValueError("Personal Access Token (PAT) is required. Please provide a valid PAT in the config file.")
     headers = {"PRIVATE-TOKEN": f"{config['PAT']}"}
+
+    # sanity checks for the input parameters
+    if input_fits_path is None:
+        raise ValueError("Input FITS path is required. Please provide a valid path.")
+    if not os.path.exists(input_fits_path):
+        raise FileNotFoundError(f"Input FITS file '{input_fits_path}' does not exist.")
+    if not product_id:
+        raise ValueError("Product ID is required. Please provide a valid product ID.")
 
     ################
     ## DATA MODEL ##
     ################
 
-    DM_tags_url = config["gitlab_DM_tags_url"]
+    DM_tags_url = "https://gitlab.euclid-sgs.uk/api/v4/projects/ST-DM%2FST_DataModel/repository/tags"
     response = requests.get(DM_tags_url, headers=headers)
     response.raise_for_status()
     DM_tags = response.json()
@@ -39,12 +50,12 @@ if __name__ == "__main__":
     if data_model == "latest":
         tag = DM_all_tags[0]
         # construct the URL for the latest tag
-        data_model_url = f"{config['gitlab_DM_base_url']}/-/archive/{tag}/ST_DataModel-{tag}.zip"
+        data_model_url = f"https://gitlab.euclid-sgs.uk/ST-DM/ST_DataModel/-/archive/{tag}/ST_DataModel-{tag}.zip"
 
     elif data_model in DM_all_tags:
         tag = data_model
         # construct the URL for the provided tag
-        data_model_url = f"{config['gitlab_DM_base_url']}/-/archive/{tag}/ST_DataModel-{tag}.zip"
+        data_model_url = f"https://gitlab.euclid-sgs.uk/ST-DM/ST_DataModel/-/archive/{tag}/ST_DataModel-{tag}.zip"
     elif os.path.exists(data_model) and data_model.endswith(".xml"):
         # if the path is a valid XML file, use it directly
         data_model = data_model
@@ -70,7 +81,7 @@ if __name__ == "__main__":
     ## FITS DATA MODEL ##
     #####################
 
-    FitsDM_tags_url = config["gitlab_FitsDM_tags_url"]
+    FitsDM_tags_url = "https://gitlab.euclid-sgs.uk/api/v4/projects/ST-DM%2FST_FitsDataModel/repository/tags"
     response = requests.get(FitsDM_tags_url, headers=headers)
     response.raise_for_status()
     FitsDM_tags = response.json()
@@ -82,12 +93,12 @@ if __name__ == "__main__":
     if fits_data_model == "latest":
         tag = FitsDM_all_tags[0]
         # construct the URL for the latest tag
-        fits_data_model_url = f"{config['gitlab_FitsDM_base_url']}/-/archive/{tag}/ST_FitsDataModel-{tag}.zip"
+        fits_data_model_url = f"https://gitlab.euclid-sgs.uk/ST-DM/ST_FitsDataModel/-/archive/{tag}/ST_FitsDataModel-{tag}.zip"
 
     elif fits_data_model in FitsDM_all_tags:
         tag = fits_data_model
         # construct the URL for the provided tag
-        fits_data_model_url = f"{config['gitlab_FitsDM_base_url']}/-/archive/{tag}/ST_FitsDataModel-{tag}.zip"
+        fits_data_model_url = f"https://gitlab.euclid-sgs.uk/ST-DM/ST_FitsDataModel/-/archive/{tag}/ST_FitsDataModel-{tag}.zip"
     elif os.path.exists(fits_data_model) and fits_data_model.endswith(".xml"):
         # if the path is a valid XML file, use it directly
         fits_data_model_path = fits_data_model
@@ -112,7 +123,7 @@ if __name__ == "__main__":
         fits_data_model_path = f'generated/ST_FitsDataModel-{tag}/ST_DM_FitsSchema/auxdir/ST_DM_FitsSchema/instances/fit/euc-le3-id.xml'
         
         if not os.path.exists(fits_data_model_path):
-            raise ValueError(f"ST_DM_FitsSchema/instances/fit/euc-le3-id.xml does not exist in ST_FitsDataModel version {tag}.")
+            raise ValueError(f"ST_DM_FitsSchema/instances/fit/euc-le3-id.xml does not exist in ST_FitsDataModel version '{tag}'.")
 
     # initializing the FitsProcessor
     fits_handler = FitsProcessor()

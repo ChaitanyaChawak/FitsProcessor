@@ -122,6 +122,6 @@ def extract_data_for_id(fits_format_id, fitsDataModel_path=None):
         with open(output_filename, "w") as json_file:
             json.dump(extracted_data, json_file, indent=4)
 
-        print(f"Data successfully extracted and saved as '{output_filename}'.")
+        print(f"Data successfully extracted from the FitsDataModel and saved as '{output_filename}'.")
     else:
         print(f"No FitsFormat with id '{fits_format_id}' found in the XML.")

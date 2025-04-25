@@ -1,4 +1,4 @@
-# modify these
+# modify these according to the requirements
 input_fits_path: "/path/to/input.fits" # simulated fits file
 product_id: "le3.id.vmpz.output.poscatalog" # Example: 'le3.id.vmpz.output.shearcatalog'; 'le3.id.vmpz.output.poscatalog'; 'le3.id.vmpz.output.proxyshearcatalog';
 data_model: "latest"  # Options: 'latest' OR '<specific_version>' (e.g. '9.2.3') OR '<path_to_file>' (e.g. 'raw/DataModel.xml')
@@ -6,13 +6,3 @@ fits_data_model: "latest" # Options: 'latest' OR '<specific_version>' (e.g. '9.2
 display_output: False
 
 PAT: "<gitlab_personal_access_token>"  # GitLab personal access token with at least read permission
-
-
-# do not modify these
-output_directory: "generated/"
-
-gitlab_DM_tags_url: "https://gitlab.euclid-sgs.uk/api/v4/projects/ST-DM%2FST_DataModel/repository/tags"
-gitlab_DM_base_url: "https://gitlab.euclid-sgs.uk/ST-DM/ST_DataModel"
-
-gitlab_FitsDM_tags_url: "https://gitlab.euclid-sgs.uk/api/v4/projects/ST-DM%2FST_FitsDataModel/repository/tags"
-gitlab_FitsDM_base_url: "https://gitlab.euclid-sgs.uk/ST-DM/ST_FitsDataModel"

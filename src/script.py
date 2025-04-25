@@ -21,29 +21,9 @@ class FitsProcessor:
         """
         try:
             self.hdu_list = fits.open(input_fits_path, memmap=True)
-            print("\033[1mOpening the FITS file . . .\033[0m \n")
+            # print("\033[1mOpening the FITS file . . .\033[0m \n")
         except Exception as e:
             print(f"\033[1mError opening FITS file : {e}\033[0m \n")
-
-    def save_as_new(self, output_path):
-        """
-        Save the modified FITS file to a new location.
-
-        Parameters:
-        -----------
-        output_path : str
-            The path where the modified FITS file should be saved.
-
-        """
-        if self.hdu_list is None:
-            print("\033[1mNo FITS file loaded.\033[0m \n")
-            return
-        
-        try:
-            self.hdu_list.writeto(output_path, overwrite=True)
-            print(f"\033[1mModified FITS file saved to {output_path}.\033[0m \n")
-        except Exception as e:
-            print(f"\033[1mError saving FITS file : {e}\033[0m \n")
 
     def close_fits(self):
         """
@@ -56,7 +36,7 @@ class FitsProcessor:
         """
         if self.hdu_list:
             self.hdu_list.close()
-            print("\033[1mFITS file closed.\033[0m \n")
+            # print("\033[1mFITS file closed.\033[0m \n")
 
     def display_contents(self, input_fits_path):
         """
@@ -162,7 +142,7 @@ class FitsProcessor:
             # get the column names form the input catalog
             if isinstance(hdu, fits.BinTableHDU):
                 columns = hdu.columns
-                print(columns)
+                # print(columns)
                 column_names = [col.name for col in columns]
                 # print(f"Columns in input : {column_names}")
             else:
@@ -254,6 +234,7 @@ class FitsProcessor:
                 print("\033[1mTo display output\033[0m \n")
                 self.display_contents(input_fits_path=output_path)
 
+            print(f"\n\033[1mCatalog {product_id} generated successfully and saved to {output_path}.\033[0m \n")
             end_time = datetime.now()
             
             # calculate the time taken
