@@ -4,18 +4,11 @@ import yaml
 import argparse
 import re
 
-# from xsdata.formats.dataclass.context import XmlContext
-# from xsdata.formats.dataclass.parsers import XmlParser
 from xsdata.formats.dataclass.serializers import XmlSerializer
 from xsdata.formats.dataclass.serializers.config import SerializerConfig
 from xsdata.exceptions import SerializerError
 
 from ST_DM_FilenameProvider.FilenameProvider import FileNameProvider
-
-
-# from ST_DataModelBindingsXsData.dictionary.bas.cot.euc_cot import SpatialFootprint
-# from ST_DataModelBindingsXsData.dictionary.bas.imp.stc.euc_stc import PolygonType
-
 
 from ST_DataModelBindingsXsData.dictionary.bas import cat
 from ST_DM_HeaderProvider.IdProvider import get_uuid_as_string
@@ -27,8 +20,6 @@ from ST_DataModelBindingsXsData.dpd.le3.id.vmpz import out
 from ST_DataModelBindingsXsData.dictionary.sys import (GenericHeader, ToBeChecked, ValidationStatus, Purpose)
 
 
-
-# Files handling
 #####################################
 
 names_database = {
@@ -37,8 +28,19 @@ names_database = {
         'proxyshearcatalog': {'capitalised':'ProxyShearCatalog', 'shortname': 'ProxyShear', 'product': 'DpdWLProxyShearCatalog', 'id': 'le3.id.vmpz.output.proxyshearcatalog'}
     }
 
-
 def extract_word_before_fits(filepath):
+    """Extracts the word before ".fits" in the given file path.
+
+    Parameters
+    ----------
+    filepath: str
+        The file path from which to extract the word.
+
+    Returns
+    -------
+    str
+        The extracted word before ".fits" or None if not found."""
+    
     match = re.search(r'\.([^.]+)\.fits$', filepath)
     return match.group(1) if match else None
 
@@ -46,10 +48,11 @@ def extract_word_before_fits(filepath):
 def create_catalog(fits_file):
     """Creates the output catalog bindings.
 
-    Inputs
+    Parameters
     ------
     fits_file: str
         The name of the fits file to be wrapped in the binding.
+
     Returns
     -------
     object:
@@ -64,7 +67,6 @@ def create_catalog(fits_file):
         raise ValueError(f"Invalid catalog name: {catalog_name}. Expected one of {list(names_database.keys())} for generating the xml.")
     
 
-
     # Create the appropriate data product binding based on the catalog name
     if catalog_name == 'poscatalog':
         dpd = out.euc_le3_id_vmpz_pos_catalog.DpdWLPosCatalog()
@@ -72,11 +74,6 @@ def create_catalog(fits_file):
         dpd = out.euc_le3_id_vmpz_shear_catalog.DpdWLShearCatalog()
     elif catalog_name == 'proxyshearcatalog':
         dpd = out.euc_le3_id_vmpz_proxy_shear_catalog.DpdWLProxyShearCatalog()
-
-    # dpd = out.euc_le3_id_vmpz_pos_catalog.DpdWLPosCatalog()
-    #out.euc_le3_id_vmpz_proxy_shear_catalog.DpdWLProxyShearCatalog()
-    #out.euc_le3_id_vmpz_shear_catalog.DpdWLShearCatalog()
-
 
     # Add the generic header to the data product
     dpd.Header = create_generic_header(names_database[catalog_name]['product'])
@@ -91,7 +88,6 @@ def create_catalog(fits_file):
         
     
     # Add the catalog descriptions
-    ## Cat
     description = cat.CatalogDescription()
     description.PathToCatalogFile = f"{names_database[catalog_name]['product']}.Data.{names_database[catalog_name]['capitalised']}.DataContainer.FileName"
     # description.PathToCatalogFile = f"DpdWLPosCatalog.Data.PosCatalog.DataContainer.FileName"
@@ -99,9 +95,6 @@ def create_catalog(fits_file):
     description.CatalogOrigin = "OTHERS"
     description.CatalogOrigin = "MEASURED_WIDE"
     description.CatalogName = f"Le3-Id-Vmpz-Output-{names_database[catalog_name]['shortname']}-Catalog"
-    # description.CatalogName = "Le3-Id-Vmpz-Output-Position-Catalog"
-    #Le3-Id-Vmpz-Output-Shear-Catalog
-    #Le3-Id-Vmpz-Output-ProxyShear-Catalog
     description.CatalogFormatHDU = 1
     dpd.Data.CatalogDescription.append(description)
 
@@ -127,8 +120,6 @@ def create_catalog(fits_file):
             "0.1")
 
     return dpd
-
-
 
 def save_product_metadata(product, xml_file_name):
     """Saves an XML instance of a given data product.
@@ -162,6 +153,16 @@ def save_product_metadata(product, xml_file_name):
 def filename_provider(instance_id=None, release=None, product=None):
     """Creates a filename provider binding.
 
+    Parameters
+    ----------
+    instance_id: str, optional
+        The instance ID. Default is None.
+    release: str, optional
+        The release version. Default is None.
+    product: str
+        The product name. Default is None.
+        The product name should be one of the keys in the names_database dictionary.
+
     Returns
     -------
     object
@@ -181,8 +182,6 @@ def filename_provider(instance_id=None, release=None, product=None):
 def __create_simple_data(binding_class):
     data = binding_class()
     return data
-
-
 
 def __create_fits_storage(binding_class, file_name, file_format, version):
     """Creates a fits file storage binding.
@@ -214,14 +213,6 @@ def __create_fits_storage(binding_class, file_name, file_format, version):
     storage.DataContainer = create_data_container(file_name)
 
     return storage
-
-# def createFromDocument(xml, stub):
-#     parser = XmlParser(context=XmlContext())
-#     return parser.from_string(xml, stub)
-
-# def read_spatial_coverage(le3_id_vmpz_out_xml_text):
-#     mer_cat_dpd = createFromDocument(le3_id_vmpz_out_xml_text, out.DpdMerFinalCatalog)
-#     return mer_cat_dpd.Data.SpatialCoverage
 
 
 def create_data_container(file_name, file_status="PROPOSED"):
@@ -294,7 +285,6 @@ def create_generic_header(product_type):
 
     conf = load_config(config_file)
 
-
     GenericHeaderContent = GenericHeader()
     GenericHeaderContent.ProductId = get_uuid_as_string()
     GenericHeaderContent.ProductType = product_type
@@ -330,11 +320,15 @@ def create_generic_header(product_type):
 
 
 def load_config(config_path):
-    """Load configuration from a YAML file."""
+    """Load configuration from a YAML file.
+    Parameters
+    ----------
+    config_path : str
+        Path to the YAML configuration file.
+    """
     with open(config_path, "r") as file:
         return yaml.safe_load(file)
     
-
 
 def main(fits_file, output_dir="./generated/"):
     """
@@ -365,7 +359,11 @@ if __name__ == "__main__":
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description="Create and save a catalog from a FITS file.")
     parser.add_argument("fits_file", type=str, help="Path to the input FITS file.")
-    parser.add_argument("--output_dir", type=str, default="./generated/", help="Directory to save the generated XML file.")
+    parser.add_argument("--output_dir", 
+                        type=str, 
+                        default="./generated/", 
+                        help="Directory to save the generated XML file."
+                        )
     args = parser.parse_args()
 
     # Call the main function with the provided arguments

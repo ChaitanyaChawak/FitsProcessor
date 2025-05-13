@@ -6,12 +6,24 @@ from script import FitsProcessor
 import re
 
 def load_config(config_path):
-    """Load configuration from a YAML file."""
+    """Load configuration from a YAML file.
+
+    Parameters:
+    -----------
+    config_path : str
+        Path to the YAML configuration file.
+    """
     with open(config_path, "r") as file:
         return yaml.safe_load(file)
     
 def is_path_provided(path):
-    """Check if the path is provided."""
+    """Check if the path is provided.
+    
+    Parameters:
+    -----------
+    path : str
+        Path to check.
+    """
     #match the path with a regex to check if it is a valid path
     if path=="latest" or re.match(r'^\d{1,5}\.\d{1,5}\.\d{1,5}$', path):
         return False
@@ -147,9 +159,6 @@ if __name__ == "__main__":
 
     if is_path_provided(fits_data_model):
         fits_data_model_path = fits_data_model
-
-    # if is_path_provided(data_model):
-    #     data_model = data_model + '/ST_DataModel/auxdir/ST_DataModel/instances/fit/euc-le3-id.xml'
 
     # initializing the FitsProcessor
     fits_handler = FitsProcessor()

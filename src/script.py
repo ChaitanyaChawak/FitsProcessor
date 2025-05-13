@@ -106,6 +106,10 @@ class FitsProcessor:
         catalog_info : dict
             Dictionary of dictionaries containing information about the columns in the catalog. {'column1' : {'format' : 'D', 'unit' : 'deg'}}
         
+        Returns:
+        --------
+        column : class object
+            Astropy class object of the input FITS file <class 'astropy.io.fits.column.ColDefs'>
         """
         for colname in column.names:
             col = column[colname]
@@ -139,7 +143,6 @@ class FitsProcessor:
         start_time = datetime.now()
 
         try:
-            # basic checks for the input params
             
             if output_path is None:
                 print("\033[1mError: Please provide an output path to save the file.\033[0m \n")
