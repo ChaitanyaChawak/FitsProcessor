@@ -4,6 +4,8 @@ import numpy as np
 from datetime import datetime
 import json
 from helpers import *
+import subprocess
+
 
 class FitsProcessor:
     def __init__(self):
@@ -37,6 +39,24 @@ class FitsProcessor:
         if self.hdu_list:
             self.hdu_list.close()
             # print("\033[1mFITS file closed.\033[0m \n")
+
+    def create_xml(self, fits_file):
+        """
+        Run the testheader.py script to create and save the catalog.
+
+        Parameters:
+        -----------
+        fits_file : str
+            Path to the input FITS file.
+        """
+        try:
+            subprocess.run(
+                ["python", "./src/testheader.py", fits_file, "--output_dir", "./generated/"],
+                check=True
+            )
+            # print(f"Catalog created and saved in generated/ dir.")
+        except subprocess.CalledProcessError as e:
+            print(f"Error creating XML: {e}")
 
     def display_contents(self, input_fits_path):
         """
@@ -151,7 +171,7 @@ class FitsProcessor:
 
 
             ## get the column info from the json file
-            json_file = f'generated/extracted_data_{product_id}.json'
+            json_file = f'./generated/extracted_data_{product_id}.json'
 
             with open(json_file, 'r') as file:
                 json_data = json.load(file)
@@ -233,8 +253,11 @@ class FitsProcessor:
             if display_output:
                 print("\033[1mTo display output\033[0m \n")
                 self.display_contents(input_fits_path=output_path)
+            
+            # create the XML file using the testheader.py logic
+            self.create_xml(output_path)
 
-            print(f"\n\033[1mCatalog {product_id} generated successfully and saved to {output_path}.\033[0m \n")
+            print(f"\n\033[1mCatalog {product_id} generated successfully and saved in ./generated/ dir .\033[0m \n")
             end_time = datetime.now()
             
             # calculate the time taken

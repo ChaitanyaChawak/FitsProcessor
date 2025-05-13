@@ -1,13 +1,21 @@
 import sys
 import datetime
 import yaml
+import argparse
+import re
 
-
+# from xsdata.formats.dataclass.context import XmlContext
+# from xsdata.formats.dataclass.parsers import XmlParser
 from xsdata.formats.dataclass.serializers import XmlSerializer
 from xsdata.formats.dataclass.serializers.config import SerializerConfig
 from xsdata.exceptions import SerializerError
 
 from ST_DM_FilenameProvider.FilenameProvider import FileNameProvider
+
+
+# from ST_DataModelBindingsXsData.dictionary.bas.cot.euc_cot import SpatialFootprint
+# from ST_DataModelBindingsXsData.dictionary.bas.imp.stc.euc_stc import PolygonType
+
 
 from ST_DataModelBindingsXsData.dictionary.bas import cat
 from ST_DM_HeaderProvider.IdProvider import get_uuid_as_string
@@ -20,9 +28,19 @@ from ST_DataModelBindingsXsData.dictionary.sys import (GenericHeader, ToBeChecke
 
 
 
-
 # Files handling
 #####################################
+
+names_database = {
+        'poscatalog': {'capitalised':'PosCatalog', 'shortname': 'Position', 'product': 'DpdWLPosCatalog', 'id': 'le3.id.vmpz.output.poscatalog'},
+        'shearcatalog': {'capitalised':'ShearCatalog', 'shortname': 'Shear', 'product': 'DpdWLShearCatalog', 'id': 'le3.id.vmpz.output.shearcatalog'},
+        'proxyshearcatalog': {'capitalised':'ProxyShearCatalog', 'shortname': 'ProxyShear', 'product': 'DpdWLProxyShearCatalog', 'id': 'le3.id.vmpz.output.proxyshearcatalog'}
+    }
+
+
+def extract_word_before_fits(filepath):
+    match = re.search(r'\.([^.]+)\.fits$', filepath)
+    return match.group(1) if match else None
 
 
 def create_catalog(fits_file):
@@ -38,40 +56,75 @@ def create_catalog(fits_file):
         The output catalog bindings.
 
     """
-    # Create the appropriate data product binding
-    dpd = out.euc_le3_id_vmpz_pos_catalog.DpdWLPosCatalog()
+    catalog_name = extract_word_before_fits(fits_file)
+    # print(f"Catalog name: {catalog_name}")
+    
+
+    if catalog_name not in names_database:
+        raise ValueError(f"Invalid catalog name: {catalog_name}. Expected one of {list(names_database.keys())} for generating the xml.")
+    
+
+
+    # Create the appropriate data product binding based on the catalog name
+    if catalog_name == 'poscatalog':
+        dpd = out.euc_le3_id_vmpz_pos_catalog.DpdWLPosCatalog()
+    elif catalog_name == 'shearcatalog':
+        dpd = out.euc_le3_id_vmpz_shear_catalog.DpdWLShearCatalog()
+    elif catalog_name == 'proxyshearcatalog':
+        dpd = out.euc_le3_id_vmpz_proxy_shear_catalog.DpdWLProxyShearCatalog()
+
+    # dpd = out.euc_le3_id_vmpz_pos_catalog.DpdWLPosCatalog()
     #out.euc_le3_id_vmpz_proxy_shear_catalog.DpdWLProxyShearCatalog()
     #out.euc_le3_id_vmpz_shear_catalog.DpdWLShearCatalog()
 
 
     # Add the generic header to the data product
-    dpd.Header = create_generic_header('DpdWLPosCatalog')
+    dpd.Header = create_generic_header(names_database[catalog_name]['product'])
 
+    #create simple data for the catalog based on the catalog name
+    if catalog_name == 'poscatalog':
+        dpd.Data = __create_simple_data(vmpz_pro.PosCatalogWL)
+    elif catalog_name == 'shearcatalog':
+        dpd.Data = __create_simple_data(vmpz_pro.WLShearCatalog)
+    elif catalog_name == 'proxyshearcatalog':
+        dpd.Data = __create_simple_data(vmpz_pro.ProxyShearCatalogWL)
+        
     
-
-    dpd.Data = __create_simple_data(vmpz_pro.PosCatalogWL)
-
-
     # Add the catalog descriptions
     ## Cat
     description = cat.CatalogDescription()
-    description.PathToCatalogFile = "DpdWLPosCatalog.Data.PosCatalog.DataContainer.FileName"
+    description.PathToCatalogFile = f"{names_database[catalog_name]['product']}.Data.{names_database[catalog_name]['capitalised']}.DataContainer.FileName"
+    # description.PathToCatalogFile = f"DpdWLPosCatalog.Data.PosCatalog.DataContainer.FileName"
     description.CatalogType = "NOT_PROXY"
     description.CatalogOrigin = "OTHERS"
     description.CatalogOrigin = "MEASURED_WIDE"
-    description.CatalogName = "Le3-Id-Vmpz-Output-Position-Catalog"
+    description.CatalogName = f"Le3-Id-Vmpz-Output-{names_database[catalog_name]['shortname']}-Catalog"
+    # description.CatalogName = "Le3-Id-Vmpz-Output-Position-Catalog"
     #Le3-Id-Vmpz-Output-Shear-Catalog
     #Le3-Id-Vmpz-Output-ProxyShear-Catalog
     description.CatalogFormatHDU = 1
     dpd.Data.CatalogDescription.append(description)
 
 
-    # Add the files
-    dpd.Data.PosCatalog = __create_fits_storage(
-        vmpz_pro.PosCatalogFile,
-        fits_file,
-        "le3.id.vmpz.output.poscatalog",
-        "0.1")
+    # Add the files for the catalog bas based on the catalog name
+    if catalog_name == 'poscatalog':
+        dpd.Data.PosCatalog = __create_fits_storage(
+            vmpz_pro.PosCatalogFile,
+            fits_file,
+            names_database[catalog_name]['id'],
+            "0.1")
+    elif catalog_name == 'shearcatalog':
+        dpd.Data.ShearCatalog = __create_fits_storage(
+            vmpz_pro.WLShearCatalogFile,
+            fits_file,
+            names_database[catalog_name]['id'],
+            "0.1")
+    elif catalog_name == 'proxyshearcatalog':   
+        dpd.Data.ProxyShearCatalog = __create_fits_storage(
+            vmpz_pro.ProxyShearCatalogWLFile,
+            fits_file,
+            names_database[catalog_name]['id'],
+            "0.1")
 
     return dpd
 
@@ -106,7 +159,7 @@ def save_product_metadata(product, xml_file_name):
 
 ################################################################################
 
-def filename_provider(instance_id=None, release=None):
+def filename_provider(instance_id=None, release=None, product=None):
     """Creates a filename provider binding.
 
     Returns
@@ -115,9 +168,10 @@ def filename_provider(instance_id=None, release=None):
         The filename provider binding.
 
     """
+    product = extract_word_before_fits(product)
     filename = FileNameProvider().get_allowed_filename(
         processing_function='le3',
-        type_name='PosCatalog',
+        type_name=f'{names_database[product]["capitalised"]}',
         instance_id=instance_id or '',
         release=release or '00.00',
         extension='.xml')
@@ -212,7 +266,7 @@ def create_generic_header(product_type):
 
     """
     # path to the configuration file and read it
-    config_file = "src/config/XmlHeaderDetails.yaml"
+    config_file = "./src/config/XmlHeaderDetails.yaml"
 
     # Load the existing YAML file
     with open(config_file, 'r') as file:
@@ -281,20 +335,38 @@ def load_config(config_path):
         return yaml.safe_load(file)
     
 
-def main(argv=None):  # IGNORE:C0111
-    generated_fits = 'generated/le3.id.vmpz.output.poscatalog.fits'
-    # xml_file_name = 'generated/poscatalog.xml'
 
-    filename = filename_provider()
-    xml_file_name = f'generated/{filename}'
+def main(fits_file, output_dir="./generated/"):
+    """
+    Main function to create and save the catalog.
 
-    vmpz_dpd = create_catalog(generated_fits)
-    
-    save_product_metadata(vmpz_dpd, xml_file_name)
-    
-    print('Done')
-    return 0
-    
-    
+    Parameters:
+    -----------
+    fits_file : str
+        Path to the input FITS file.
+    output_dir : str, optional
+        Directory to save the generated XML file. Default is "generated/".
+    """
+    try:
+        
+        # Create the catalog
+        dpd = create_catalog(fits_file)
+
+        # Save the product metadata to an XML file
+        filename = filename_provider(product=fits_file)
+        xml_file_name = f"{output_dir}{filename}"
+        save_product_metadata(dpd, xml_file_name)
+
+        # print(f"Catalog created and saved to {xml_file_name}")
+    except Exception as e:
+        print(f"Error creating catalog: {e}")
+
 if __name__ == "__main__":
-    sys.exit(main())
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(description="Create and save a catalog from a FITS file.")
+    parser.add_argument("fits_file", type=str, help="Path to the input FITS file.")
+    parser.add_argument("--output_dir", type=str, default="./generated/", help="Directory to save the generated XML file.")
+    args = parser.parse_args()
+
+    # Call the main function with the provided arguments
+    main(args.fits_file, args.output_dir)
