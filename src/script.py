@@ -6,7 +6,6 @@ import json
 from helpers import *
 import subprocess
 
-
 class FitsProcessor:
     def __init__(self):
         self.hdu_list = None
@@ -42,7 +41,7 @@ class FitsProcessor:
 
     def create_xml(self, fits_file):
         """
-        Run the testheader.py script to create and save the catalog.
+        Run the xmlgenerator.py script to create and save the catalog.
 
         Parameters:
         -----------
@@ -51,7 +50,7 @@ class FitsProcessor:
         """
         try:
             subprocess.run(
-                ["python", "./src/testheader.py", fits_file, "--output_dir", "./generated/"],
+                ["python", "./src/xmlgenerator.py", fits_file, "--output_dir", "./generated/"],
                 check=True
             )
             # print(f"Catalog created and saved in generated/ dir.")
@@ -257,10 +256,10 @@ class FitsProcessor:
                 print("\033[1mTo display output\033[0m \n")
                 self.display_contents(input_fits_path=output_path)
             
-            # create the XML file using the testheader.py logic
+            # create the XML file using the xmlgenerator.py logic
             self.create_xml(output_path)
 
-            print(f"\n\033[1mCatalog {product_id} generated successfully and saved in ./generated/ dir .\033[0m \n")
+            print(f"\n\033[1mCatalog generated successfully and saved in ./generated/ dir .\033[0m \n")
             end_time = datetime.now()
             
             # calculate the time taken

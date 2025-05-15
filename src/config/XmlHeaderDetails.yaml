@@ -1,9 +1,10 @@
+fits_filepath: ./generated/EUC_LE3_PROXYSHEARCATALOG__20250515T154454.895944Z_00.00.fits
 header.default.AutomatedValidationStatus: UNKNOWN
-header.default.CreationDate: '2025-05-13T13:26:19.535Z'
+header.default.CreationDate: '2025-05-15T15:44:54.892Z'
 header.default.Curator: Curator0
 header.default.DataSetRelease: NA
 header.default.EuclidPipelineSoftwareRelease: '0.0'
-header.default.ExpirationDate: '2027-05-13T13:26:19.535Z'
+header.default.ExpirationDate: '2027-05-15T15:44:54.892Z'
 header.default.ManualValidationStatus: UNKNOWN
 header.default.PipelineDefinitionId: PipelineDefinitionId
 header.default.PpoStatus: NA
@@ -16,3 +17,5 @@ header.default.SoftwareRelease: '0.0'
 header.default.ToBePublished: '0'
 header.output.file: GenericHeader.xml
 header.output.tag: Header
+product_id: le3.id.vmpz.output.proxyshearcatalog
+xml_filepath: ./generated/EUC_LE3_PROXYSHEARCATALOG__20250515T154454.895944Z_00.00.xml

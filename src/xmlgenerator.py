@@ -1,8 +1,17 @@
 import sys
+import os
 import datetime
 import yaml
 import argparse
 import re
+import xml.etree.ElementTree as ET
+from xml.dom import minidom
+
+sys.path.append('/cvmfs/euclid-dev.in2p3.fr/EDEN-3.1/opt/euclid/ST_DataModel/10.1.3/InstallArea/x86_64-conda_ry9-gcc11-o2g/python')
+sys.path.append('/cvmfs/euclid-dev.in2p3.fr/EDEN-3.1/opt/euclid/ST_DataModel/10.1.3/InstallArea/x86_64-conda_ry9-gcc11-o2g/auxdir')
+
+sys.path.append('/cvmfs/euclid-dev.in2p3.fr/EDEN-3.1/opt/euclid/ST_DataModelTools/10.2/InstallArea/x86_64-conda_ry9-gcc11-o2g/python')
+sys.path.append('/cvmfs/euclid-dev.in2p3.fr/EDEN-3.1/opt/euclid/Elements/7.0.0/InstallArea/x86_64-conda_ry9-gcc11-o2g/python')
 
 from xsdata.formats.dataclass.serializers import XmlSerializer
 from xsdata.formats.dataclass.serializers.config import SerializerConfig
@@ -66,6 +75,13 @@ def create_catalog(fits_file):
     if catalog_name not in names_database:
         raise ValueError(f"Invalid catalog name: {catalog_name}. Expected one of {list(names_database.keys())} for generating the xml.")
     
+    # saving the product_id in the yaml file
+    config_file = "./src/config/XmlHeaderDetails.yaml"
+    with open(config_file, 'r') as file:
+        data = yaml.safe_load(file)
+    data['product_id'] = names_database[catalog_name]['id']
+    with open(config_file, 'w') as file:
+        yaml.dump(data, file)
 
     # Create the appropriate data product binding based on the catalog name
     if catalog_name == 'poscatalog':
@@ -328,7 +344,70 @@ def load_config(config_path):
     """
     with open(config_path, "r") as file:
         return yaml.safe_load(file)
-    
+
+def add_spatial_coverage(xml_file_name):
+    """
+    Create a catalog, save it as an XML file, and add the <SpatialCoverage> element
+    before <CatalogDescription> in the <Data> section of the XML file.
+
+    Parameters:
+    -----------
+    fits_file : str
+        Path to the input FITS file.
+    output_dir : str, optional
+        Directory to save the generated XML file. Default is "generated/".
+    """
+    try:
+        # Step 3: Parse the saved XML file
+        tree = ET.parse(xml_file_name)
+        root = tree.getroot()
+
+        # Step 4: Find the <Data> element
+        data_element = root.find("Data")
+        if data_element is None:
+            print("Error: <Data> element not found in the XML file.")
+            return
+
+        # Step 5: Create the <SpatialCoverage> element
+        spatial_coverage = ET.Element("SpatialCoverage")
+        polygon = ET.SubElement(spatial_coverage, "Polygon")
+
+        # Define the vertices
+        vertices = [
+            {"C1": "0.0", "C2": "0.0"},
+        ]
+
+        for vertex in vertices:
+            vertex_element = ET.SubElement(polygon, "Vertex")
+            ET.SubElement(vertex_element, "C1").text = vertex["C1"]
+            ET.SubElement(vertex_element, "C2").text = vertex["C2"]
+
+        # Step 6: Insert <SpatialCoverage> before <CatalogDescription>
+        catalog_description = data_element.find("CatalogDescription")
+        if catalog_description is not None:
+            data_element.insert(list(data_element).index(catalog_description), spatial_coverage)
+        else:
+            print("Error: <CatalogDescription> element not found in <Data>.")
+            return
+
+        # Step 7: Convert the modified XML tree to a string
+        xml_string = ET.tostring(root, encoding="unicode")
+
+        # Step 8: Pretty-print the XML using minidom
+        pretty_xml = minidom.parseString(xml_string).toprettyxml(indent="  ")
+        # Remove unnecessary blank lines
+        lines = [line for line in pretty_xml.splitlines() if line.strip()]
+        lines = "\n".join(lines)
+
+        # Step 9: Write the formatted XML back to the file
+        with open(xml_file_name, "w", encoding="UTF-8") as f:
+            f.write(lines)
+
+        print(f"Catalog created and saved to {xml_file_name} with <SpatialCoverage> added.")
+    except Exception as e:
+        print(f"Error creating catalog or adding <SpatialCoverage>: {e}")
+
+ 
 
 def main(fits_file, output_dir="./generated/"):
     """
@@ -350,6 +429,20 @@ def main(fits_file, output_dir="./generated/"):
         filename = filename_provider(product=fits_file)
         xml_file_name = f"{output_dir}{filename}"
         save_product_metadata(dpd, xml_file_name)
+        add_spatial_coverage(xml_file_name)
+
+        # renaming the fits file to the xml file name
+        os.rename(fits_file, xml_file_name.replace(".xml", ".fits"))
+
+        # saving the xml and fits file paths in the yaml file
+        config_file = "./src/config/XmlHeaderDetails.yaml"
+        with open(config_file, 'r') as file:
+            data = yaml.safe_load(file)
+        data['xml_filepath'] = xml_file_name
+        data['fits_filepath'] = xml_file_name.replace(".xml", ".fits")
+        with open(config_file, 'w') as file:
+            yaml.dump(data, file)
+
 
         # print(f"Catalog created and saved to {xml_file_name}")
     except Exception as e:

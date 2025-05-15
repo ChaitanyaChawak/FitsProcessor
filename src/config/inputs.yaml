@@ -1,7 +1,7 @@
 # modify these according to the requirements
-input_fits_path: "./path/to/input.fits" # simulated fits file
-product_id: "le3.id.vmpz.output.shearcatalog" 
-fits_data_model: "/cvmfs/euclid-dev.in2p3.fr/EDEN-3.1/opt/euclid/ST_FitsDataModel/10.1.1/InstallArea/x86_64-conda_ry9-gcc11-o2g/auxdir/ST_DM_FitsSchema/instances/fit/euc-le3-id.xml" # Options: 'latest' OR '<specific_version>' (e.g. '9.2.3') OR '<path_to_file>' (e.g. 'raw/FitsDataModel.xml')
+input_fits_path: "path/to/input.fits" # simulated fits file
+product_id: "le3.id.vmpz.output.proxyshearcatalog" #either le3.id.vmpz.output.poscatalog or le3.id.vmpz.output.shearcatalog or le3.id.vmpz.output.proxyshearcatalog
+fits_data_model: "path/to/fitsschema.xml" # Options: 'latest' OR '<specific_version>' (e.g. '9.2.3') OR '<path_to_file>' (e.g. 'raw/FitsDataModel.xml')
 display_output: False
 
 PAT: "<gitlab_personal_access_token>"  # GitLab personal access token with at least read permission
