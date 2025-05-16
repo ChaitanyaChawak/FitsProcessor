@@ -16,12 +16,12 @@ Before running the program, modify the `src/config/inputs.yaml` file to specify 
 - input_fits_path
 - product_id \
 (Example: 'le3.id.vmpz.output.shearcatalog'; 'le3.id.vmpz.output.poscatalog'; 'le3.id.vmpz.output.proxyshearcatalog')
-- data_model \
-(Example: 'latest' OR '<specific_version>' (e.g. '9.2.3') OR '<path_to_file>' (e.g. 'raw/DataModel.xml'))
 - fits_data_model \
 (Example: 'latest' OR '<specific_version>' (e.g. '9.2.3') OR '<path_to_file>' (e.g. 'raw/FitsDataModel.xml'))
 - display_output fits (bool)
 - PAT (the Personal Access Token for your Gitlab account - with at least read permission)
+
+The generic header configuration for the XML will be set as per the default values in `src/config/XmlHeaderDetails.yaml`. Modify only the 'header.default' values if necessary.
 
 All the files that are required by the program (e.g. FitsDataModel.xml) should be in the 'raw' folder at the root of the project directory.
 
@@ -34,5 +34,12 @@ After configuring the inputs, run the program using:
 ```bash
 python src/example_run.py
 ```
+This will generate the final product (fits + xml).
 
-This will generate the catalogs based on the specified inputs.
+To run the validation script (for both fits and xml files) execute the following in EDEN environment:
+
+```bash
+ERun ST_DataModelTools 10.1.8 python src/validation.py
+```
+
+> NOTE : By default the last generated product by the `src/example_run.py` will be considered for validation. To choose a custom product, change the 'fits_filepath' and 'xml_filepath' parameters in the `src/config/XmlHeaderDetails.yaml` file.
