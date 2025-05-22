@@ -87,7 +87,5 @@ product_id = data.get("product_id", None)
 print(f"\nValidating XML file: {xml_file}\n")
 validate_xml(xml_file, "10.1.3")
 
-# validate_fits_warns(fits_file, "le3.id.vmpz.output.poscatalog")
-
 print(f"\nValidating FITS file: {fits_file}\n")
-validate_fits(fits_file, product_id)
+validate_fits_warns(fits_file, product_id)

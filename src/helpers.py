@@ -42,10 +42,12 @@ def extract_keywords(header_keyword_list):
     """
     keywords = []
     for keyword in header_keyword_list:
+        keyword_type = keyword.tag.replace("Keyword", "").lower()  # Convert to lowercase for consistency
         keyword_info = {
             "name": keyword.get("name"),
             "unit": keyword.get("unit"),
-            "comment": keyword.get("comment")
+            "comment": keyword.get("comment"),
+            "type": keyword_type,
         }
         keywords.append(keyword_info)
     return keywords

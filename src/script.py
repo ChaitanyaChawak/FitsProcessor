@@ -119,6 +119,47 @@ class FitsProcessor:
             if col_unit in ('', None): col.unit = catalog_info[colname]['unit']
             
         return column
+    
+    def process_header(self, header, required_keywords):
+        """
+        Process the header to ensure it contains only the required keywords.
+
+        Parameters:
+        -----------
+        header : astropy.io.fits.Header
+            The header to be processed.
+        required_keywords : list
+            List of dictionaries containing the required keywords with their attributes.
+        """
+        # Remove excess keywords
+        existing_keywords = list(header.keys())
+        required_names = [kw["name"] for kw in required_keywords if "name" in kw]
+
+        print(f"Existing keywords: {existing_keywords}")
+        print(f"Required keywords: {required_names}")
+
+        for key in existing_keywords:
+            if key not in required_names and key not in ["SIMPLE", "BITPIX", "NAXIS", "EXTEND", "TTYPE22", "TTYPE23", "TTYPE24", "TFORM22", "TFORM23", "TFORM24"]:
+                del header[key]
+
+        # Add missing keywords and set the type
+        for kw in required_keywords:
+            name = kw.get("name")
+            if name:
+                # Set the value of the keyword based on its type
+                value = None
+                if "type" in kw and kw["type"] is not None:
+                    keyword_type = kw["type"].lower()
+                    if keyword_type == "string":
+                        value = ""
+
+                # Add the keyword to the header if it doesn't exist
+                if name not in header:
+                    header[name] = value
+
+                # Set the comment if provided
+                if "comment" in kw and kw["comment"]:
+                    header.comments[name] = kw["comment"]
 
 
     def generate_catalog(self, product_id, input_fits_path, output_path=None, fitsDataModel_path=None, display_output=False):
@@ -185,10 +226,13 @@ class FitsProcessor:
             # check if 'columns' exists in the 'table_hdu'
             if "columns" in table_hdu_info:
                 for column in table_hdu_info["columns"]:
+                    unit = column.get("unit")
+                    if unit == "NA" and (product_id == "le3.id.vmpz.output.poscatalog" or product_id == "le3.id.vmpz.output.proxyshearcatalog"):
+                        unit = None
                     column_name = column.get("name")
                     column_info = {
                         "format": column.get("format"),
-                        "unit": column.get("unit"),
+                        "unit": unit,
                         "comment": column.get("comment")
                     }
                     columns_info[column_name] = column_info
@@ -243,6 +287,9 @@ class FitsProcessor:
             table_hdu_name = table_hdu_info.get("name")
 
             new_hdu.header['EXTNAME'] = table_hdu_name
+
+            self.process_header(primary_hdu.header, json_data.get("generic_hdu", [])["header_keywords"])
+            self.process_header(new_hdu.header, json_data.get("table_hdu", [])["header_keywords"])
   
             output_hdu = fits.HDUList([primary_hdu, new_hdu])
             output_path = output_path + f'{product_id}.fits'

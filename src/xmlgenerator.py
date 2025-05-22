@@ -403,7 +403,7 @@ def add_spatial_coverage(xml_file_name):
         with open(xml_file_name, "w", encoding="UTF-8") as f:
             f.write(lines)
 
-        print(f"Catalog created and saved to {xml_file_name} with <SpatialCoverage> added.")
+        # print(f"Catalog created and saved to {xml_file_name} with <SpatialCoverage> added.")
     except Exception as e:
         print(f"Error creating catalog or adding <SpatialCoverage>: {e}")
 

@@ -18,3 +18,4 @@ build/
 
 run.py
 testscript.py
+/XmlHeaderDetails.yaml
