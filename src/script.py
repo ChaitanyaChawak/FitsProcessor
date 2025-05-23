@@ -96,29 +96,59 @@ class FitsProcessor:
 
     def check_column_properties(self, column, catalog_info):
         """
-        Checks if the columns in the existing FITS files have the proper unit and format as compared to the catalog. Only adds if it is missing. Does not convert. Returns new column object.
-
+        Checks if the columns in the existing FITS files have the proper format as compared to the catalog.
+        Only updates and converts the format if necessary. Does not handle the unit.
+        
         Parameters:
         -----------
         column : class object
             Astropy class object of the input FITS file <class 'astropy.io.fits.column.ColDefs'>
         catalog_info : dict
-            Dictionary of dictionaries containing information about the columns in the catalog. {'column1' : {'format' : 'D', 'unit' : 'deg'}}
-        
+            Dictionary of dictionaries containing information about the columns in the catalog.
+            {'column1': {'format': 'D'}}
+            
         Returns:
         --------
-        column : class object
-            Astropy class object of the input FITS file <class 'astropy.io.fits.column.ColDefs'>
+        new_col : list
+            A list of astropy class objects of the input FITS file <class 'astropy.io.fits.column.ColDefs'>
         """
+        new_column = []
         for colname in column.names:
             col = column[colname]
             col_format = col.format
             col_unit = col.unit
-
-            if col_format in ('', None): col.format = catalog_info[colname]['format']
-            if col_unit in ('', None): col.unit = catalog_info[colname]['unit']
+            column_data = col.array  # Get the column data
             
-        return column
+            # If unit is not specified, set it as per catalog_info
+            if col_unit in ('', None): col.unit = catalog_info[colname]['unit']
+
+            # Check and update the format if it's missing or incorrect
+            if col_format in ('', None):
+                col.format = catalog_info[colname]['format']
+            elif col_format != catalog_info[colname]['format']:
+                # Format is different, update it
+                col.format = catalog_info[colname]['format']
+                print(f"\nUpdating column {colname} format from {col_format} to {col.format}\n")
+                
+                # Convert the column data to the new format
+                if col.format == "K":  # 64-bit signed integer
+                    column_data = column_data.astype(np.int64)
+                elif col.format == "J":  # 32-bit signed integer
+                    column_data = column_data.astype(np.int32)
+                elif col.format == "E":  # 32-bit float
+                    column_data = column_data.astype(np.float32)
+                elif col.format == "D":  # 64-bit float
+                    column_data = column_data.astype(np.float64)
+                else:
+                    raise ValueError(f"Unsupported target format: {col.format}")
+
+            # Update the column with the converted data
+            col = fits.Column(name=colname, format=col.format, unit=col.unit, array=column_data)
+
+            new_column.append(col)
+        
+        return new_column
+
     
     def process_header(self, header, required_keywords):
         """
@@ -135,11 +165,12 @@ class FitsProcessor:
         existing_keywords = list(header.keys())
         required_names = [kw["name"] for kw in required_keywords if "name" in kw]
 
-        print(f"Existing keywords: {existing_keywords}")
-        print(f"Required keywords: {required_names}")
+        # print(f"Existing keywords: {existing_keywords}")
+        # print(f"Required keywords: {required_names}")
 
         for key in existing_keywords:
             if key not in required_names and key not in ["SIMPLE", "BITPIX", "NAXIS", "EXTEND", "TTYPE22", "TTYPE23", "TTYPE24", "TFORM22", "TFORM23", "TFORM24"]:
+                # print(f"Removing keyword: {key}")
                 del header[key]
 
         # Add missing keywords and set the type
@@ -211,6 +242,28 @@ class FitsProcessor:
             else:
                 print("The specified HDU does not contain a binary table.")
                 return []
+            
+            # Rename specific columns for the 'proxyshear' product ID
+            if product_id == "le3.id.vmpz.output.proxyshearcatalog":
+                rename_map = {
+                    "SHE_RA": "RIGHT_ASCENSION",
+                    "SHE_DEC": "DECLINATION",
+                    "SHE_G1": "G1",
+                    "SHE_G2": "G2",
+                    "SHE_WEIGHT": "WEIGHT"
+                }
+
+                for old_name, new_name in rename_map.items():
+                    if old_name in column_names:
+                        # If the new name already exists, delete it
+                        if new_name in column_names:
+                            columns.del_col(new_name)
+                            column_names.remove(new_name)
+
+                        # Rename the column
+                        col_index = column_names.index(old_name)
+                        columns[col_index].name = new_name
+                        column_names[col_index] = new_name
 
 
             ## get the column info from the json file
@@ -255,7 +308,6 @@ class FitsProcessor:
             # print(f"Missing : {missing_from_input}")
             # print(f"Excess : {excess_in_input}")
 
-
             # modify the columns (add/remove if required) and then order them according to the FitsDataModel xml [this is done in-memory]
             for item in excess_in_input:
                 columns.del_col(item)
@@ -272,10 +324,12 @@ class FitsProcessor:
                 newcol = fits.Column(name=item, format=format, unit=unit, array=data)
                 columns_to_add.append(newcol)
 
-            # print(f"Removed excess columns and added the missing ones ! \n")
+            # print(f"Columns to add : {[col.name for col in columns_to_add]}")
+            # print(f"Columns already present : {[col.name for col in columns]}")
 
-            all_columns = columns + fits.ColDefs(columns_to_add)
-            
+            # Combine existing and new columns
+            all_columns = fits.ColDefs(columns + columns_to_add)
+
             reordered_columns = [col for col_name in catalog_colnames
                                 for col in all_columns
                                 if col.name == col_name]
@@ -290,6 +344,8 @@ class FitsProcessor:
 
             self.process_header(primary_hdu.header, json_data.get("generic_hdu", [])["header_keywords"])
             self.process_header(new_hdu.header, json_data.get("table_hdu", [])["header_keywords"])
+
+            # print(new_hdu)
   
             output_hdu = fits.HDUList([primary_hdu, new_hdu])
             output_path = output_path + f'{product_id}.fits'
@@ -298,6 +354,7 @@ class FitsProcessor:
             self.close_fits()
             del self.hdu_list
 
+            print(f"\033[1mFits file generated successfully and saved in './generated/' dir .\033[0m \n")
 
             if display_output:
                 print("\033[1mTo display output\033[0m \n")
@@ -306,7 +363,6 @@ class FitsProcessor:
             # create the XML file using the xmlgenerator.py logic
             self.create_xml(output_path)
 
-            print(f"\n\033[1mCatalog generated successfully and saved in ./generated/ dir .\033[0m \n")
             end_time = datetime.now()
             
             # calculate the time taken

@@ -54,14 +54,15 @@ def extract_word_before_fits(filepath):
     return match.group(1) if match else None
 
 
-def create_catalog(fits_file):
+def create_catalog(fits_file, file_name):
     """Creates the output catalog bindings.
 
     Parameters
     ------
     fits_file: str
         The name of the fits file to be wrapped in the binding.
-
+    file_name: str
+        The name of the generated file
     Returns
     -------
     object:
@@ -119,19 +120,19 @@ def create_catalog(fits_file):
     if catalog_name == 'poscatalog':
         dpd.Data.PosCatalog = __create_fits_storage(
             vmpz_pro.PosCatalogFile,
-            fits_file,
+            file_name,
             names_database[catalog_name]['id'],
             "0.1")
     elif catalog_name == 'shearcatalog':
         dpd.Data.ShearCatalog = __create_fits_storage(
             vmpz_pro.WLShearCatalogFile,
-            fits_file,
+            file_name,
             names_database[catalog_name]['id'],
             "0.1")
     elif catalog_name == 'proxyshearcatalog':   
         dpd.Data.ProxyShearCatalog = __create_fits_storage(
             vmpz_pro.ProxyShearCatalogWLFile,
-            fits_file,
+            file_name,
             names_database[catalog_name]['id'],
             "0.1")
 
@@ -252,7 +253,8 @@ def create_data_container(file_name, file_status="PROPOSED"):
     data_container = dss.DataContainer()
 
     # Fill it with the given values
-    data_container.FileName = file_name
+    fits_file_name = 'generated/' + file_name.replace('.xml', '.fits')
+    data_container.FileName = fits_file_name
     data_container.filestatus = file_status
 
     return data_container
@@ -421,13 +423,14 @@ def main(fits_file, output_dir="./generated/"):
         Directory to save the generated XML file. Default is "generated/".
     """
     try:
-        
-        # Create the catalog
-        dpd = create_catalog(fits_file)
 
-        # Save the product metadata to an XML file
         filename = filename_provider(product=fits_file)
         xml_file_name = f"{output_dir}{filename}"
+        
+        # Create the catalog
+        dpd = create_catalog(fits_file, filename)
+
+        # Save the product metadata to an XML file
         save_product_metadata(dpd, xml_file_name)
         add_spatial_coverage(xml_file_name)
 
@@ -444,7 +447,8 @@ def main(fits_file, output_dir="./generated/"):
             yaml.dump(data, file)
 
 
-        # print(f"Catalog created and saved to {xml_file_name}")
+        print(f"\033[1mXML file generated successfully and saved in './generated/' dir .\033[0m \n")
+
     except Exception as e:
         print(f"Error creating catalog: {e}")
 
