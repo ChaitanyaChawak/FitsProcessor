@@ -264,6 +264,26 @@ class FitsProcessor:
                         col_index = column_names.index(old_name)
                         columns[col_index].name = new_name
                         column_names[col_index] = new_name
+            
+            # Rename specific columns for the 'poscatalog' product ID
+            if product_id == "le3.id.vmpz.output.poscatalog":
+                rename_map = {
+                    "MER_RA": "RIGHT_ASCENSION",
+                    "MER_DEC": "DECLINATION",
+                    "PHZ_WEIGHT": "WEIGHT"
+                }
+
+                for old_name, new_name in rename_map.items():
+                    if old_name in column_names:
+                        # If the new name already exists, delete it
+                        if new_name in column_names:
+                            columns.del_col(new_name)
+                            column_names.remove(new_name)
+
+                        # Rename the column
+                        col_index = column_names.index(old_name)
+                        columns[col_index].name = new_name
+                        column_names[col_index] = new_name
 
 
             ## get the column info from the json file
