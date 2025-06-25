@@ -211,6 +211,20 @@ class FitsProcessor:
             optional argument to get the fitsDataModel xml of a Data Product
 
         """
+        # --- ASCII Art and Info ---
+        ascii_art = r"""
+        ╔═╗┬┌┬┐┌─┐╔═╗┬─┐┌─┐┌─┐┌─┐┌─┐┌─┐┌─┐┬─┐
+        ╠╣ │ │ └─┐╠═╝├┬┘│ ││  ├┤ └─┐└─┐│ │├┬┘
+        ╚  ┴ ┴ └─┘╩  ┴└─└─┘└─┘└─┘└─┘└─┘└─┘┴└─
+
+        """
+        print(ascii_art)
+        #print(f"FitsProcessor started at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"Your input FITS file: {input_fits_path}")
+        print(f"Your product ID: {product_id}")
+        
+        print("-" * 60)
+        print("Progress ⬇ \n")
         start_time = datetime.now()
 
         try:
@@ -374,7 +388,7 @@ class FitsProcessor:
             self.close_fits()
             del self.hdu_list
 
-            print(f"\033[1mFits file generated successfully and saved in './generated/' dir .\033[0m \n")
+            print(f"\033[1mFits file generated successfully and saved in './generated/' dir  \( ﾟヮﾟ)/\033[0m \n")
 
             if display_output:
                 print("\033[1mTo display output\033[0m \n")

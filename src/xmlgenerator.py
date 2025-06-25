@@ -447,7 +447,7 @@ def main(fits_file, output_dir="./generated/"):
             yaml.dump(data, file)
 
 
-        print(f"\033[1mXML file generated successfully and saved in './generated/' dir .\033[0m \n")
+        print(f"\033[1mXML file generated successfully and saved in './generated/' dir  \( ﾟヮﾟ)/\033[0m \n")
 
     except Exception as e:
         print(f"Error creating catalog: {e}")

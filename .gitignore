@@ -10,6 +10,7 @@ __pycache__/
 *.xml
 generated/ST_DataModel*
 generated/ST_FitsDataModel*
+raw/
 
 # build artifacts
 dist/
