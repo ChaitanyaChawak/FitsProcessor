@@ -2,6 +2,8 @@
 
 A program to create three different catalogs (position, shear, proxyshear) from the sim fits file and the FitsDataModel xml.
 
+![screenshot](screenshot.png)
+
 ## Installation
 
 To install the package, clone the repository, navigate to the project directory and run:
@@ -26,6 +28,8 @@ The generic header configuration for the XML will be set as per the default valu
 All the files that are required by the program (e.g. FitsDataModel.xml) should be in the 'raw' folder at the root of the project directory.
 
 All the files generated from this program will be saved in the 'generated' folder present at the root of the project directory.
+
+If PAT is being used to run the program, only the FITS data product will be generated. Generation of the corresponding XML file requires an access to the EDEN environment.
 
 ## Executing
 

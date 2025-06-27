@@ -24,7 +24,7 @@ class FitsProcessor:
             self.hdu_list = fits.open(input_fits_path, memmap=True)
             # print("\033[1mOpening the FITS file . . .\033[0m \n")
         except Exception as e:
-            print(f"\033[1mError opening FITS file : {e}\033[0m \n")
+            print(f"Error opening FITS file : {e} \n")
 
     def close_fits(self):
         """
@@ -128,7 +128,7 @@ class FitsProcessor:
             elif col_format != catalog_info[colname]['format']:
                 # Format is different, update it
                 col.format = catalog_info[colname]['format']
-                print(f"\nUpdating column {colname} format from {col_format} to {col.format}\n")
+                print(f"Updating column {colname} format from {col_format} to {col.format}\n")
                 
                 # Convert the column data to the new format
                 if col.format == "K":  # 64-bit signed integer
@@ -193,7 +193,7 @@ class FitsProcessor:
                     header.comments[name] = kw["comment"]
 
 
-    def generate_catalog(self, product_id, input_fits_path, output_path=None, fitsDataModel_path=None, display_output=False):
+    def generate_catalog(self, product_id, input_fits_path, output_path=None, fitsDataModel_path=None, display_output=False, PAT=False):
         """
         Generate the desired CATALOG (either 'POS' or 'SHEAR' or 'PROXYSHEAR') from the input FITS file.
 
@@ -211,26 +211,13 @@ class FitsProcessor:
             optional argument to get the fitsDataModel xml of a Data Product
 
         """
-        # --- ASCII Art and Info ---
-        ascii_art = r"""
-        ╔═╗┬┌┬┐┌─┐╔═╗┬─┐┌─┐┌─┐┌─┐┌─┐┌─┐┌─┐┬─┐
-        ╠╣ │ │ └─┐╠═╝├┬┘│ ││  ├┤ └─┐└─┐│ │├┬┘
-        ╚  ┴ ┴ └─┘╩  ┴└─└─┘└─┘└─┘└─┘└─┘└─┘┴└─
-
-        """
-        print(ascii_art)
-        #print(f"FitsProcessor started at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        print(f"Your input FITS file: {input_fits_path}")
-        print(f"Your product ID: {product_id}")
         
-        print("-" * 60)
-        print("Progress ⬇ \n")
         start_time = datetime.now()
 
         try:
             
             if output_path is None:
-                print("\033[1mError: Please provide an output path to save the file.\033[0m \n")
+                print("Error: Please provide an output path to save the file. \n")
                 return
 
             # generate the json data file from FitsDataModel xml
@@ -391,11 +378,13 @@ class FitsProcessor:
             print(f"\033[1mFits file generated successfully and saved in './generated/' dir  \( ﾟヮﾟ)/\033[0m \n")
 
             if display_output:
-                print("\033[1mTo display output\033[0m \n")
+                print("To display output \n")
                 self.display_contents(input_fits_path=output_path)
             
             # create the XML file using the xmlgenerator.py logic
-            self.create_xml(output_path)
+
+            if not PAT:
+                self.create_xml(output_path)
 
             end_time = datetime.now()
             
@@ -404,4 +393,4 @@ class FitsProcessor:
             print(f"Execution time: {elapsed_time.total_seconds():.4f} seconds")
 
         except Exception as e:
-            print(f"\033[1mError generating the catalog for {product_id} : {e}\033[0m \n")
+            print(f"Error generating the catalog for {product_id} : {e} \n")
