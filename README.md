@@ -12,6 +12,24 @@ To install the package, clone the repository, navigate to the project directory 
 pip install .
 ```
 
+### Using Docker
+If you have Docker installed already, you can download the Image for FitsProcessor from the DockerHub using the command
+```bash
+docker pull cchawak/fitsprocessor:v1.0 
+```
+
+Once the image is downloaded, you can run it using
+```bash
+docker run --rm -it cchawak/fitsprocessor:v1.0
+```
+
+This will open up a bash terminal allowing access to the container.
+
+One final step before entering the execution phase is the activation of the venv. Run the following in the default dir (which should be '/workdir')
+```bash
+source .venv/bin/activate
+```
+
 ## Configuration
 
 Before running the program, modify the `src/config/inputs.yaml` file to specify the following parameters:
