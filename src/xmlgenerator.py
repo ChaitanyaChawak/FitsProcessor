@@ -314,8 +314,10 @@ def create_generic_header(product_type):
     GenericHeaderContent.ProdSDC = conf.get("header.default.ProdSDC")
     GenericHeaderContent.DataSetRelease = conf.get("header.default.DataSetRelease")
     GenericHeaderContent.Purpose = Purpose(conf.get("header.default.Purpose"))
-    GenericHeaderContent.PlanId = get_uuid_as_string()
-    GenericHeaderContent.PPOId = get_uuid_as_string()
+    # GenericHeaderContent.PlanId = get_uuid_as_string()
+    GenericHeaderContent.PlanId = conf.get("header.default.PlanId")
+    # GenericHeaderContent.PPOId = get_uuid_as_string()
+    GenericHeaderContent.PPOId = conf.get("header.default.PPOId")
     GenericHeaderContent.PipelineDefinitionId = conf.get(
         "header.default.PipelineDefinitionId"
     )

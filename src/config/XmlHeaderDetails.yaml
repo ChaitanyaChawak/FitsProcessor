@@ -6,9 +6,11 @@ header.default.DataSetRelease: NA
 header.default.EuclidPipelineSoftwareRelease: '0.0'
 header.default.ExpirationDate: '2027-05-15T15:44:54.892Z'
 header.default.ManualValidationStatus: UNKNOWN
-header.default.PipelineDefinitionId: PipelineDefinitionId
+header.default.PipelineDefinitionId: NA
+header.default.PlanId: NA
+header.default.PPOId: NA
 header.default.PpoStatus: NA
-header.default.ProdSDC: SDC-IT
+header.default.ProdSDC: SDC-FR
 header.default.ProductNotifiedToBeChecked: UNKNOWN
 header.default.Published: '0'
 header.default.Purpose: UNKNOWN
