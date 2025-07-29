@@ -106,7 +106,7 @@ def create_catalog(fits_file, file_name):
     
     # Add the catalog descriptions
     description = cat.CatalogDescription()
-    description.PathToCatalogFile = f"{names_database[catalog_name]['product']}.Data.{names_database[catalog_name]['capitalised']}.DataContainer.FileName"
+    description.PathToCatalogFile = f"Data.{names_database[catalog_name]['capitalised']}.DataContainer.FileName"
     # description.PathToCatalogFile = f"DpdWLPosCatalog.Data.PosCatalog.DataContainer.FileName"
     description.CatalogType = "NOT_PROXY"
     description.CatalogOrigin = "OTHERS"
