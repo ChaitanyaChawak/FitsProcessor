@@ -129,6 +129,7 @@ def create_catalog(fits_file, file_name):
             file_name,
             names_database[catalog_name]['id'],
             "0.1")
+        dpd.Data.SheEstimationMethod = "Generic"
     elif catalog_name == 'proxyshearcatalog':   
         dpd.Data.ProxyShearCatalog = __create_fits_storage(
             vmpz_pro.ProxyShearCatalogWLFile,
@@ -253,7 +254,7 @@ def create_data_container(file_name, file_status="PROPOSED"):
     data_container = dss.DataContainer()
 
     # Fill it with the given values
-    fits_file_name = 'generated/' + file_name.replace('.xml', '.fits')
+    fits_file_name = file_name.replace('.xml', '.fits')
     data_container.FileName = fits_file_name
     data_container.filestatus = file_status
 
