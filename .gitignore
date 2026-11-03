@@ -11,6 +11,7 @@ __pycache__/
 generated/ST_DataModel*
 generated/ST_FitsDataModel*
 raw/
+*.fits.tmp
 
 # build artifacts
 dist/

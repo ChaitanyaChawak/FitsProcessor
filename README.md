@@ -40,12 +40,15 @@ Before running the program, modify the `src/config/inputs.yaml` file to specify 
 (Example: 'latest' OR '<specific_version>' (e.g. '9.2.3') OR '<path_to_file>' (e.g. 'raw/FitsDataModel.xml'))
 - display_output fits (bool)
 - PAT (the Personal Access Token for your Gitlab account - with at least read permission)
+- header_values (optional; values for header keywords required by the FitsDataModel, e.g. NSIDE / ORDERING for HEALPix maps)
 
 The generic header configuration for the XML will be set as per the default values in `src/config/XmlHeaderDetails.yaml`. Modify only the 'header.default' values if necessary.
 
 All the files that are required by the program (e.g. FitsDataModel.xml) should be in the 'raw' folder at the root of the project directory.
 
 All the files generated from this program will be saved in the 'generated' folder present at the root of the project directory.
+
+Standalone utilities for large FITS files (splitting, merging, column swapping, ...) are in the 'tools' folder; see `tools/README.md`.
 
 If PAT is being used to run the program, only the FITS data product will be generated. Generation of the corresponding XML file requires an access to the EDEN environment.
 

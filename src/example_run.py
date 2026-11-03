@@ -3,6 +3,7 @@ import requests
 import os
 import zipfile
 from script import FitsProcessor
+import console
 import re
 
 def load_config(config_path):
@@ -30,9 +31,9 @@ def is_path_provided(path):
     else:
         return True
 
-def ascii_art(input_fits_path, product_id):
+def ascii_art(input_fits_path, product_id, fits_data_model):
     """
-    Prints an ASCII art header.
+    Prints an ASCII art header and a summary of the run configuration.
     """
     ascii_art = r"""
     ╔═╗┬┌┬┐┌─┐╔═╗┬─┐┌─┐┌─┐┌─┐┌─┐┌─┐┌─┐┬─┐
@@ -40,13 +41,11 @@ def ascii_art(input_fits_path, product_id):
     ╚  ┴ ┴ └─┘╩  ┴└─└─┘└─┘└─┘└─┘└─┘└─┘┴└─
 
     """
-    print(ascii_art)
-    #print(f"FitsProcessor started at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print(f"Your input FITS file: {input_fits_path}")
-    print(f"Your product ID: {product_id}")
-    
-    print("-" * 60)
-    print("Progress ⬇ \n")
+    print(console.cyan(ascii_art.rstrip()) + "\n")
+    console.info("Input FITS", input_fits_path)
+    console.info("Product ID", product_id)
+    console.info("Data model", fits_data_model)
+    print(console.dim(console.INDENT + "─" * (console.term_width() - 2 * len(console.INDENT))))
 
 if __name__ == "__main__":
 
@@ -59,8 +58,13 @@ if __name__ == "__main__":
     fits_data_model = config.get("fits_data_model", "latest")  # Default to latest if not provided
     # data_model = config.get("data_model", "latest")  # Default to latest if not provided
     display_output = config.get("display_output", False)  # Default to False if not provided
+    header_values = config.get("header_values") or {}  # Optional values for required header keywords
 
-    ascii_art(input_fits_path, product_id)
+    if (not isinstance(header_values, dict) or not set(header_values) <= {"primary", "table"}
+            or not all(v is None or isinstance(v, dict) for v in header_values.values())):
+        raise ValueError("'header_values' in inputs.yaml must have the form {primary: {KEYWORD: value}, table: {KEYWORD: value}}.")
+
+    ascii_art(input_fits_path, product_id, fits_data_model)
 
     # sanity checks for the input parameters
     if input_fits_path is None:
@@ -83,7 +87,8 @@ if __name__ == "__main__":
             raise ValueError("Personal Access Token (PAT) is required. Please provide a valid PAT in the config file.")
         
         PAT_provided = True
-        print(" NOTE: With a GitLab Personal Access Token (PAT), only the fits data product will be generated. Access to EDEN env is required for generation of XML.\n")
+        console.warn("Using a GitLab Personal Access Token (PAT): only the FITS data product will be generated.")
+        console.warn("Generating the XML requires access to the EDEN environment.")
         headers = {"PRIVATE-TOKEN": f"{config['PAT']}"}
 
         FitsDM_tags_url = "https://gitlab.euclid-sgs.uk/api/v4/projects/ST-DM%2FST_FitsDataModel/repository/tags"
@@ -145,4 +150,5 @@ if __name__ == "__main__":
         output_path=output_dir,
         display_output=display_output,
         PAT=PAT_provided,
+        header_values=header_values,
     )
