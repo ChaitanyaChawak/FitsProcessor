@@ -17,6 +17,8 @@ RUN cd /workdir && \
 
 COPY . /workdir
 
+RUN chmod -R a+rX /workdir
+
 RUN source .venv/bin/activate && \
     pip install .
 
