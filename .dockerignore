@@ -1,0 +1,29 @@
+# Keep the Docker build context small: only the code, config and docs go into the image.
+
+# version control and local environments
+.git
+.venv
+**/__pycache__
+build/
+dist/
+**/*.egg-info
+
+# data files (mount them into the container instead); '**/' matches in any folder
+**/*.fits
+**/*.fits.tmp
+original_pieces/
+data/
+
+# keep the raw/ and generated/ folders (the program writes to ./generated/), but not their contents
+raw/*
+!raw/README.md
+generated/*
+!generated/README.md
+
+# local scratch files
+image.png
+contentcheck.py
+src/newmain.py
+src/temp.py
+src/run.py
+src/testscript.py
