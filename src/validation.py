@@ -1,5 +1,6 @@
 import warnings
 import yaml
+import console
 
 from ST_DM_CheckXML.XmlValidator import XmlValidator
 from ST_DataModelBindingsXsData.dictionary.bas.fit import FitsFormat
@@ -87,5 +88,13 @@ product_id = data.get("product_id", None)
 print(f"\nValidating XML file: {xml_file}\n")
 validate_xml(xml_file, "10.1.3")
 
-print(f"\nValidating FITS file: {fits_file}\n")
-validate_fits_warns(fits_file, product_id)
+console.step(1, 1, "Validating the FITS file")
+console.info("FITS", fits_file)
+console.info("Product ID", product_id)
+bad_results = validate_fits(fits_file, product_id)
+if bad_results:
+    console.error(f"FITS validation failed with {len(bad_results)} issue(s):")
+    for res in bad_results:
+        console.item(res.comment)
+else:
+    console.success("FITS file is valid")

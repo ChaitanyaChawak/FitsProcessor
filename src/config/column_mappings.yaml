@@ -1,0 +1,41 @@
+# Input column name -> catalog column name, per product ID.
+# Applied before the input columns are matched against the FitsDataModel.
+# If both the input name and the catalog name exist in the input file, the renamed input column is used.
+
+le3.id.vmpz.output.poscatalog:
+  MER_RA: RIGHT_ASCENSION
+  MER_DEC: DECLINATION
+  PHZ_WEIGHT: WEIGHT
+
+le3.id.vmpz.output.proxyshearcatalog:
+  SHE_RA: RIGHT_ASCENSION
+  SHE_DEC: DECLINATION
+  SHE_G1: G1
+  SHE_G2: G2
+  SHE_WEIGHT: WEIGHT
+
+le3.id.vmpz.output.shearcatalog:
+  object_id: OBJECT_ID
+  she_lensmc_ra: SHE_RA
+  she_lensmc_dec: SHE_DEC
+  she_lensmc_e1_corrected: SHE_E1_CORRECTED
+  she_lensmc_e2_corrected: SHE_E2_CORRECTED
+  she_lensmc_e1: SHE_E1
+  she_lensmc_e2: SHE_E2
+  she_lensmc_m11: SHE_M11
+  she_lensmc_m12: SHE_M12
+  she_lensmc_m21: SHE_M21
+  she_lensmc_m22: SHE_M22
+  she_lensmc_c1: SHE_C1
+  she_lensmc_c2: SHE_C2
+  she_lensmc_psf_e1: SHE_PSF_E1
+  she_lensmc_psf_e2: SHE_PSF_E2
+  she_lensmc_psf_r2: SHE_PSF_R2
+  she_lensmc_alpha1: SHE_ALPHA1
+  she_lensmc_alpha2: SHE_ALPHA2
+  she_lensmc_weight: SHE_WEIGHT
+  phz_median: PHZ_MEDIAN
+  phz_mode_1: PHZ_MODE_1
+  phz_mode_2: PHZ_MODE_2
+  tom_bin_id: TOM_BIN_ID
+  alt_tom_bin_id: ALT_TOM_BIN_ID
